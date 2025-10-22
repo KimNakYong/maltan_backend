@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus 자체 모니터링
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Gateway Service 모니터링
+  - job_name: 'gateway-service'
+    static_configs:
+      - targets: ['gateway-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+
+  # User Service 모니터링
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:8081']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+
+  # Place Service 모니터링
+  - job_name: 'place-service'
+    static_configs:
+      - targets: ['place-service:8082']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+
+  # Recommendation Service 모니터링
+  - job_name: 'recommendation-service'
+    static_configs:
+      - targets: ['recommendation-service:8083']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+
+  # Community Service 모니터링
+  - job_name: 'community-service'
+    static_configs:
+      - targets: ['community-service:8084']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+
+  # PostgreSQL 모니터링
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  # Redis 모니터링
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
