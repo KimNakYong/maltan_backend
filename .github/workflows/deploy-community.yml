@@ -26,13 +26,14 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             # 프로젝트 디렉토리로 이동
-            cd ~/maltan-project/maltan-backend
+            cd ~/maltan-project/maltan_backend/community-service
             
-            # Git pull
+            # Git pull (루트에서)
+            cd ~/maltan-project/maltan_backend
             git pull origin main
             
             # Community Service 빌드
-            cd backend/community-service
+            cd community-service
             mvn clean package -DskipTests
             
             # Docker 이미지 빌드

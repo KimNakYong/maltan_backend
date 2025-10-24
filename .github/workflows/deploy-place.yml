@@ -25,10 +25,10 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd ~/maltan-project/maltan-backend
+            cd ~/maltan-project/maltan_backend
             git pull origin main
             
-            cd backend/place-service
+            cd place-service
             mvn clean package -DskipTests
             docker build -t place-service:latest .
             
