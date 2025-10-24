@@ -11,41 +11,41 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Deploy Place Service to Ubuntu Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
-            cd ~/maltan-project/maltan_backend
-            git pull origin main
-            
-            cd place-service
-            mvn clean package -DskipTests
-            docker build -t place-service:latest .
-            
-            docker stop place-service || true
-            docker rm place-service || true
-            
-            docker run -d \
-              --name place-service \
-              --network maltan-network \
-              -p 8082:8082 \
-              -e DB_HOST=10.0.2.15 \
-              -e DB_PORT=5432 \
-              -e DB_NAME=place_db \
-              -e SERVER_PORT=8082 \
-              place-service:latest
-            
-            sleep 10
-            docker ps | grep place-service
-            docker logs --tail 50 place-service
-
+      - name: Build Place Service
+        working-directory: backend/place-service
+        run: |
+          mvn clean package -DskipTests
+      
+      - name: Build Docker Image
+        working-directory: backend/place-service
+        run: |
+          docker build -t place-service:latest .
+      
+      - name: Stop Old Container
+        run: |
+          docker stop place-service || true
+          docker rm place-service || true
+      
+      - name: Run New Container
+        run: |
+          docker run -d \
+            --name place-service \
+            --network maltan-network \
+            -p 8082:8082 \
+            -e DB_HOST=10.0.2.15 \
+            -e DB_PORT=5432 \
+            -e DB_NAME=place_db \
+            -e SERVER_PORT=8082 \
+            place-service:latest
+      
+      - name: Health Check
+        run: |
+          sleep 10
+          docker ps | grep place-service
+          docker logs --tail 50 place-service
