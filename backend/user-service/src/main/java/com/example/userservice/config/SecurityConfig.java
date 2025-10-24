@@ -28,8 +28,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/users/register", "/api/users/health").permitAll()
-                .requestMatchers("/api/users/check-username/**", "/api/users/check-email/**").permitAll()
+                .requestMatchers("/users/register", "/users/health").permitAll()
+                .requestMatchers("/users/check-username/**", "/users/check-email/**").permitAll()
+                .requestMatchers("/users/username/**", "/users/email/**").permitAll()
+                .requestMatchers("/users/{id}").permitAll()
+                .requestMatchers("/test/**").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic();
@@ -40,10 +43,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "https://reserved-jolie-untastily.ngrok-free.app",
+            "https://*.ngrok-free.app",
+            "http://localhost:3000",
+            "http://localhost:8080",
+            "http://127.0.0.1:3000"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

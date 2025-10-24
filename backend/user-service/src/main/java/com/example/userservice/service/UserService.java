@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -83,6 +84,15 @@ public class UserService implements UserDetailsService {
     public Optional<UserResponse> findByUsernameOrEmail(String usernameOrEmail) {
         return userRepository.findByUsernameOrEmail(usernameOrEmail)
                 .map(UserResponse::new);
+    }
+    
+    /**
+     * 모든 사용자 조회
+     */
+    public List<UserResponse> findAll() {
+        return userRepository.findAll().stream()
+                .map(UserResponse::new)
+                .toList();
     }
     
     /**

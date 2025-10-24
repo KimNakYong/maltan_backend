@@ -1,5 +1,6 @@
 package com.example.userservice.controller;
 
+import com.example.userservice.dto.ApiResponse;
 import com.example.userservice.dto.UserRegistrationRequest;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.service.UserService;
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @CrossOrigin(origins = "*")
 public class UserController {
     
@@ -25,14 +26,14 @@ public class UserController {
      * 사용자 등록
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
         try {
             UserResponse userResponse = userService.registerUser(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+            ApiResponse<UserResponse> response = ApiResponse.success("회원가입이 성공적으로 완료되었습니다.", userResponse);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            ApiResponse<UserResponse> response = ApiResponse.error(e.getMessage(), 400);
+            return ResponseEntity.badRequest().body(response);
         }
     }
     
@@ -40,14 +41,14 @@ public class UserController {
      * 사용자명으로 사용자 조회
      */
     @GetMapping("/username/{username}")
-    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserByUsername(@PathVariable String username) {
         Optional<UserResponse> user = userService.findByUsername(username);
         if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+            ApiResponse<UserResponse> response = ApiResponse.success(user.get());
+            return ResponseEntity.ok(response);
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "사용자를 찾을 수 없습니다");
-            return ResponseEntity.notFound().build();
+            ApiResponse<UserResponse> response = ApiResponse.error("사용자를 찾을 수 없습니다", 404);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
     
@@ -55,14 +56,14 @@ public class UserController {
      * 이메일로 사용자 조회
      */
     @GetMapping("/email/{email}")
-    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email) {
         Optional<UserResponse> user = userService.findByEmail(email);
         if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+            ApiResponse<UserResponse> response = ApiResponse.success(user.get());
+            return ResponseEntity.ok(response);
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "사용자를 찾을 수 없습니다");
-            return ResponseEntity.notFound().build();
+            ApiResponse<UserResponse> response = ApiResponse.error("사용자를 찾을 수 없습니다", 404);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
     
@@ -70,14 +71,14 @@ public class UserController {
      * 사용자 ID로 사용자 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         Optional<UserResponse> user = userService.findById(id);
         if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+            ApiResponse<UserResponse> response = ApiResponse.success(user.get());
+            return ResponseEntity.ok(response);
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "사용자를 찾을 수 없습니다");
-            return ResponseEntity.notFound().build();
+            ApiResponse<UserResponse> response = ApiResponse.error("사용자를 찾을 수 없습니다", 404);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
     
@@ -85,11 +86,12 @@ public class UserController {
      * 사용자명 존재 여부 확인
      */
     @GetMapping("/check-username/{username}")
-    public ResponseEntity<?> checkUsernameExists(@PathVariable String username) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> checkUsernameExists(@PathVariable String username) {
         boolean exists = userService.existsByUsername(username);
-        Map<String, Object> response = new HashMap<>();
-        response.put("username", username);
-        response.put("exists", exists);
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("exists", exists);
+        ApiResponse<Map<String, Object>> response = ApiResponse.success(data);
         return ResponseEntity.ok(response);
     }
     
@@ -97,11 +99,12 @@ public class UserController {
      * 이메일 존재 여부 확인
      */
     @GetMapping("/check-email/{email}")
-    public ResponseEntity<?> checkEmailExists(@PathVariable String email) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> checkEmailExists(@PathVariable String email) {
         boolean exists = userService.existsByEmail(email);
-        Map<String, Object> response = new HashMap<>();
-        response.put("email", email);
-        response.put("exists", exists);
+        Map<String, Object> data = new HashMap<>();
+        data.put("email", email);
+        data.put("exists", exists);
+        ApiResponse<Map<String, Object>> response = ApiResponse.success(data);
         return ResponseEntity.ok(response);
     }
     
@@ -109,15 +112,15 @@ public class UserController {
      * 사용자 정보 업데이트
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, 
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Long id, 
                                        @Valid @RequestBody UserRegistrationRequest request) {
         try {
             UserResponse userResponse = userService.updateUser(id, request);
-            return ResponseEntity.ok(userResponse);
+            ApiResponse<UserResponse> response = ApiResponse.success("사용자 정보가 성공적으로 업데이트되었습니다.", userResponse);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            ApiResponse<UserResponse> response = ApiResponse.error(e.getMessage(), 400);
+            return ResponseEntity.badRequest().body(response);
         }
     }
     
@@ -125,15 +128,15 @@ public class UserController {
      * 사용자 상태 업데이트 (활성화/비활성화)
      */
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> updateUserStatus(@PathVariable Long id, 
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserStatus(@PathVariable Long id, 
                                              @RequestParam boolean enabled) {
         try {
             UserResponse userResponse = userService.updateUserStatus(id, enabled);
-            return ResponseEntity.ok(userResponse);
+            ApiResponse<UserResponse> response = ApiResponse.success("사용자 상태가 성공적으로 업데이트되었습니다.", userResponse);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            ApiResponse<UserResponse> response = ApiResponse.error(e.getMessage(), 400);
+            return ResponseEntity.badRequest().body(response);
         }
     }
     
@@ -141,16 +144,14 @@ public class UserController {
      * 사용자 삭제
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "사용자가 성공적으로 삭제되었습니다");
+            ApiResponse<String> response = ApiResponse.success("사용자가 성공적으로 삭제되었습니다", "삭제 완료");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            ApiResponse<String> response = ApiResponse.error(e.getMessage(), 400);
+            return ResponseEntity.badRequest().body(response);
         }
     }
     
@@ -158,10 +159,12 @@ public class UserController {
      * 헬스 체크
      */
     @GetMapping("/health")
-    public ResponseEntity<?> healthCheck() {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "user-service");
+    public ResponseEntity<ApiResponse<Map<String, String>>> healthCheck() {
+        Map<String, String> data = new HashMap<>();
+        data.put("status", "UP");
+        data.put("service", "user-service");
+        data.put("version", "1.0.0");
+        ApiResponse<Map<String, String>> response = ApiResponse.success(data);
         return ResponseEntity.ok(response);
     }
 }
