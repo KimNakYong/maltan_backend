@@ -1,7 +1,9 @@
 package com.example.userservice.service;
 
+import com.example.userservice.dto.PreferredRegionDto;
 import com.example.userservice.dto.UserRegistrationRequest;
 import com.example.userservice.dto.UserResponse;
+import com.example.userservice.entity.PreferredRegion;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +45,24 @@ public class UserService implements UserDetailsService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setName(request.getName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setName(request.getUsername()); // username을 name으로 사용
+        user.setPhoneNumber(request.getPhone());
         user.setRole(User.Role.USER);
         user.setEnabled(true);
+        
+        // 선호 지역 추가
+        if (request.getPreferredRegions() != null) {
+            for (PreferredRegionDto regionDto : request.getPreferredRegions()) {
+                PreferredRegion region = new PreferredRegion(
+                    regionDto.getCity(),
+                    regionDto.getCityName(),
+                    regionDto.getDistrict(),
+                    regionDto.getDistrictName(),
+                    regionDto.getPriority()
+                );
+                user.addPreferredRegion(region);
+            }
+        }
         
         // 사용자 저장
         User savedUser = userRepository.save(user);
@@ -136,8 +152,8 @@ public class UserService implements UserDetailsService {
         }
         
         user.setEmail(request.getEmail());
-        user.setName(request.getName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setName(request.getUsername());
+        user.setPhoneNumber(request.getPhone());
         
         // 비밀번호가 제공된 경우에만 업데이트
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {

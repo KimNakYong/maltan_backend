@@ -2,6 +2,8 @@ package com.example.userservice.dto;
 
 import com.example.userservice.entity.User;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserResponse {
     
@@ -9,7 +11,8 @@ public class UserResponse {
     private String username;
     private String email;
     private String name;
-    private String phoneNumber;
+    private String phone;
+    private List<PreferredRegionDto> preferredRegions;
     private User.Role role;
     private Boolean isEnabled;
     private LocalDateTime createdAt;
@@ -23,7 +26,16 @@ public class UserResponse {
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.name = user.getName();
-        this.phoneNumber = user.getPhoneNumber();
+        this.phone = user.getPhoneNumber();
+        this.preferredRegions = user.getPreferredRegions().stream()
+                .map(region -> new PreferredRegionDto(
+                    region.getCity(),
+                    region.getCityName(),
+                    region.getDistrict(),
+                    region.getDistrictName(),
+                    region.getPriority()
+                ))
+                .collect(Collectors.toList());
         this.role = user.getRole();
         this.isEnabled = user.isEnabled();
         this.createdAt = user.getCreatedAt();
@@ -63,12 +75,20 @@ public class UserResponse {
         this.name = name;
     }
     
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getPhone() {
+        return phone;
     }
     
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    
+    public List<PreferredRegionDto> getPreferredRegions() {
+        return preferredRegions;
+    }
+    
+    public void setPreferredRegions(List<PreferredRegionDto> preferredRegions) {
+        this.preferredRegions = preferredRegions;
     }
     
     public User.Role getRole() {

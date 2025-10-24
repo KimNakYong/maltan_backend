@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .requestMatchers("/test/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic();
+            .httpBasic(httpBasic -> httpBasic.disable());
         
         return http.build();
     }

@@ -9,8 +9,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -55,6 +57,9 @@ public class User implements UserDetails {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PreferredRegion> preferredRegions = new ArrayList<>();
     
     // Constructors
     public User() {
@@ -185,6 +190,24 @@ public class User implements UserDetails {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public List<PreferredRegion> getPreferredRegions() {
+        return preferredRegions;
+    }
+    
+    public void setPreferredRegions(List<PreferredRegion> preferredRegions) {
+        this.preferredRegions = preferredRegions;
+    }
+    
+    public void addPreferredRegion(PreferredRegion preferredRegion) {
+        preferredRegions.add(preferredRegion);
+        preferredRegion.setUser(this);
+    }
+    
+    public void removePreferredRegion(PreferredRegion preferredRegion) {
+        preferredRegions.remove(preferredRegion);
+        preferredRegion.setUser(null);
     }
     
     // Role enum

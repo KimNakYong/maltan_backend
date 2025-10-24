@@ -1,14 +1,12 @@
 package com.example.userservice.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public class UserRegistrationRequest {
-    
-    @NotBlank(message = "사용자명은 필수입니다")
-    @Size(min = 3, max = 50, message = "사용자명은 3-50자 사이여야 합니다")
-    private String username;
     
     @NotBlank(message = "이메일은 필수입니다")
     @Email(message = "올바른 이메일 형식이 아닙니다")
@@ -18,32 +16,29 @@ public class UserRegistrationRequest {
     @Size(min = 6, message = "비밀번호는 최소 6자 이상이어야 합니다")
     private String password;
     
-    @NotBlank(message = "이름은 필수입니다")
-    @Size(max = 100, message = "이름은 100자를 초과할 수 없습니다")
-    private String name;
+    @NotBlank(message = "사용자명은 필수입니다")
+    @Size(min = 3, max = 50, message = "사용자명은 3-50자 사이여야 합니다")
+    private String username;
     
-    private String phoneNumber;
+    @NotBlank(message = "전화번호는 필수입니다")
+    private String phone;
+    
+    @Valid
+    @Size(min = 1, max = 3, message = "선호 지역은 1개 이상 3개 이하여야 합니다")
+    private List<PreferredRegionDto> preferredRegions;
     
     // Constructors
     public UserRegistrationRequest() {}
     
-    public UserRegistrationRequest(String username, String email, String password, String name, String phoneNumber) {
-        this.username = username;
+    public UserRegistrationRequest(String email, String password, String username, String phone, List<PreferredRegionDto> preferredRegions) {
         this.email = email;
         this.password = password;
-        this.name = name;
-        this.phoneNumber = phoneNumber;
+        this.username = username;
+        this.phone = phone;
+        this.preferredRegions = preferredRegions;
     }
     
     // Getters and Setters
-    public String getUsername() {
-        return username;
-    }
-    
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    
     public String getEmail() {
         return email;
     }
@@ -60,19 +55,27 @@ public class UserRegistrationRequest {
         this.password = password;
     }
     
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
     
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
     
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getPhone() {
+        return phone;
     }
     
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    
+    public List<PreferredRegionDto> getPreferredRegions() {
+        return preferredRegions;
+    }
+    
+    public void setPreferredRegions(List<PreferredRegionDto> preferredRegions) {
+        this.preferredRegions = preferredRegions;
     }
 }

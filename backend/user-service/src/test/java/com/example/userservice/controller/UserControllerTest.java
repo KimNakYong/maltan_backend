@@ -1,5 +1,6 @@
 package com.example.userservice.controller;
 
+import com.example.userservice.dto.PreferredRegionDto;
 import com.example.userservice.dto.UserRegistrationRequest;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
@@ -13,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -42,11 +45,16 @@ public class UserControllerTest {
         setup();
         
         UserRegistrationRequest request = new UserRegistrationRequest();
-        request.setUsername("testuser");
         request.setEmail("test@example.com");
         request.setPassword("password123");
-        request.setName("Test User");
-        request.setPhoneNumber("010-1234-5678");
+        request.setUsername("testuser");
+        request.setPhone("010-1234-5678");
+        
+        // 선호 지역 추가
+        List<PreferredRegionDto> regions = List.of(
+            new PreferredRegionDto("seoul", "서울특별시", "gangnam", "강남구", 1)
+        );
+        request.setPreferredRegions(regions);
         
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)

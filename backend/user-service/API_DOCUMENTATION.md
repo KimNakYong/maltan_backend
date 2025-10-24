@@ -16,11 +16,26 @@ POST /api/users/register
 Content-Type: application/json
 
 {
-  "username": "사용자명",
-  "email": "이메일",
-  "password": "비밀번호",
-  "name": "이름",
-  "phoneNumber": "전화번호"
+  "email": "user@example.com",
+  "password": "password123",
+  "username": "홍길동",
+  "phone": "010-1234-5678",
+  "preferredRegions": [
+    {
+      "city": "seoul",
+      "cityName": "서울특별시",
+      "district": "gangnam",
+      "districtName": "강남구",
+      "priority": 1
+    },
+    {
+      "city": "seoul",
+      "cityName": "서울특별시",
+      "district": "mapo",
+      "districtName": "마포구",
+      "priority": 2
+    }
+  ]
 }
 ```
 
@@ -31,10 +46,26 @@ Content-Type: application/json
   "message": "회원가입이 성공적으로 완료되었습니다.",
   "data": {
     "id": 1,
-    "username": "testuser",
-    "email": "test@example.com",
+    "username": "홍길동",
+    "email": "user@example.com",
     "name": "홍길동",
-    "phoneNumber": "010-1234-5678",
+    "phone": "010-1234-5678",
+    "preferredRegions": [
+      {
+        "city": "seoul",
+        "cityName": "서울특별시",
+        "district": "gangnam",
+        "districtName": "강남구",
+        "priority": 1
+      },
+      {
+        "city": "seoul",
+        "cityName": "서울특별시",
+        "district": "mapo",
+        "districtName": "마포구",
+        "priority": 2
+      }
+    ],
     "role": "USER",
     "isEnabled": true,
     "createdAt": "2024-01-01T00:00:00",
@@ -78,11 +109,19 @@ PUT /api/users/{id}
 Content-Type: application/json
 
 {
-  "username": "새사용자명",
   "email": "새이메일",
   "password": "새비밀번호",
-  "name": "새이름",
-  "phoneNumber": "새전화번호"
+  "username": "새사용자명",
+  "phone": "새전화번호",
+  "preferredRegions": [
+    {
+      "city": "busan",
+      "cityName": "부산광역시",
+      "district": "haeundae",
+      "districtName": "해운대구",
+      "priority": 1
+    }
+  ]
 }
 ```
 
@@ -133,7 +172,28 @@ const registerUser = async (userData) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify({
+        email: "user@example.com",
+        password: "password123",
+        username: "홍길동",
+        phone: "010-1234-5678",
+        preferredRegions: [
+          {
+            city: "seoul",
+            cityName: "서울특별시",
+            district: "gangnam",
+            districtName: "강남구",
+            priority: 1
+          },
+          {
+            city: "seoul",
+            cityName: "서울특별시",
+            district: "mapo",
+            districtName: "마포구",
+            priority: 2
+          }
+        ]
+      })
     });
     
     const result = await response.json();
@@ -218,7 +278,32 @@ spring:
 - ✅ 사용자 정보 수정
 - ✅ 사용자 상태 관리
 - ✅ 사용자 삭제
+- ✅ **선호 지역 관리 (1:N 관계)**
+- ✅ **우선순위 기반 지역 선택 (1-3순위)**
 - ✅ CORS 설정 (ngrok URL 지원)
 - ✅ 표준화된 API 응답 형식
 - ✅ 데이터 검증
 - ✅ 보안 설정
+
+## 데이터베이스 스키마
+
+### Users 테이블
+- id (Primary Key)
+- username (Unique)
+- email (Unique)
+- password (Encrypted)
+- name
+- phone_number
+- role
+- is_enabled
+- created_at
+- updated_at
+
+### Preferred_Regions 테이블
+- id (Primary Key)
+- user_id (Foreign Key)
+- city (도시 코드)
+- city_name (도시명)
+- district (구/군 코드)
+- district_name (구/군명)
+- priority (우선순위: 1, 2, 3)

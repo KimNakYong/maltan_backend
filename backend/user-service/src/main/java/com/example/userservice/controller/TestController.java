@@ -1,9 +1,8 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.ApiResponse;
+import com.example.userservice.dto.PreferredRegionDto;
 import com.example.userservice.dto.UserRegistrationRequest;
-import com.example.userservice.dto.UserResponse;
-import com.example.userservice.entity.User;
 import com.example.userservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,20 +30,40 @@ public class TestController {
             // 샘플 사용자 데이터 생성
             List<UserRegistrationRequest> sampleUsers = new ArrayList<>();
             
+            // 샘플 선호 지역 데이터
+            List<PreferredRegionDto> adminRegions = List.of(
+                new PreferredRegionDto("seoul", "서울특별시", "gangnam", "강남구", 1)
+            );
+            
+            List<PreferredRegionDto> user1Regions = List.of(
+                new PreferredRegionDto("seoul", "서울특별시", "gangnam", "강남구", 1),
+                new PreferredRegionDto("seoul", "서울특별시", "mapo", "마포구", 2)
+            );
+            
+            List<PreferredRegionDto> user2Regions = List.of(
+                new PreferredRegionDto("busan", "부산광역시", "haeundae", "해운대구", 1)
+            );
+            
+            List<PreferredRegionDto> user3Regions = List.of(
+                new PreferredRegionDto("seoul", "서울특별시", "jongno", "종로구", 1),
+                new PreferredRegionDto("seoul", "서울특별시", "jung", "중구", 2),
+                new PreferredRegionDto("seoul", "서울특별시", "yongsan", "용산구", 3)
+            );
+            
             sampleUsers.add(new UserRegistrationRequest(
-                "admin", "admin@example.com", "admin123", "관리자", "010-0000-0000"
+                "admin@example.com", "admin123", "관리자", "010-0000-0000", adminRegions
             ));
             
             sampleUsers.add(new UserRegistrationRequest(
-                "user1", "user1@example.com", "password123", "홍길동", "010-1111-1111"
+                "user1@example.com", "password123", "홍길동", "010-1111-1111", user1Regions
             ));
             
             sampleUsers.add(new UserRegistrationRequest(
-                "user2", "user2@example.com", "password123", "김철수", "010-2222-2222"
+                "user2@example.com", "password123", "김철수", "010-2222-2222", user2Regions
             ));
             
             sampleUsers.add(new UserRegistrationRequest(
-                "user3", "user3@example.com", "password123", "이영희", "010-3333-3333"
+                "user3@example.com", "password123", "이영희", "010-3333-3333", user3Regions
             ));
             
             int createdCount = 0;
