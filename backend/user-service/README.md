@@ -2,6 +2,12 @@
 
 마이크로서비스 아키텍처를 위한 사용자 관리 서비스입니다.
 
+## 🚀 자동 배포
+
+GitHub Actions를 통해 자동 배포가 설정되어 있습니다.
+- `backend/user-service/**` 경로의 변경사항이 `main` 브랜치에 push되면 자동으로 배포됩니다.
+- Self-Hosted Runner가 Ubuntu 서버에서 직접 빌드 및 배포를 수행합니다.
+
 ## 기능
 
 - 사용자 등록 (회원가입)
