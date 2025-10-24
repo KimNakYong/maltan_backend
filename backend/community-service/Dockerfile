@@ -1,18 +1,36 @@
-# Community Service Dockerfile
-FROM openjdk:17-jdk-slim
+# Multi-stage build for Community Service
 
-# 작업 디렉토리 설정
+# Build stage
+FROM maven:3.9-eclipse-temurin-17-alpine AS build
+
 WORKDIR /app
 
-# 애플리케이션 JAR 파일 복사
-COPY target/community-service-1.0.0.jar app.jar
+# Copy pom.xml and download dependencies
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-# 포트 노출
-EXPOSE 8084
+# Copy source code and build
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8084/actuator/health || exit 1
+# Runtime stage
+FROM eclipse-temurin:17-jre-alpine
 
-# 애플리케이션 실행
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy jar from build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8083/actuator/health || exit 1
+
+# Expose port
+EXPOSE 8083
+
+# Run application
 ENTRYPOINT ["java", "-jar", "app.jar"]

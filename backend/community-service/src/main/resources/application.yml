@@ -1,0 +1,118 @@
+spring:
+  application:
+    name: community-service
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:community_db}
+    username: ${DB_USERNAME:community_user}
+    password: ${DB_PASSWORD:Community@2025!}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 운영: validate, 개발: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_batch_fetch_size: 100
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+  
+  # File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      enabled: true
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8083}
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+
+# Security Configuration
+jwt:
+  secret: ${JWT_SECRET:maltan-community-service-secret-key-change-in-production-please}
+  expiration: 86400000  # 24시간
+
+# Feign Client Configuration (User Service 호출용)
+feign:
+  client:
+    config:
+      user-service:
+        url: ${USER_SERVICE_URL:http://localhost:8081}
+        connect-timeout: 5000
+        read-timeout: 5000
+
+# Logging Configuration
+logging:
+  level:
+    com.maltan.community: ${LOG_LEVEL:INFO}
+    org.springframework.web: ${LOG_LEVEL:INFO}
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:INFO}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${SQL_LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Application Configuration
+app:
+  # 이미지 저장 경로 (로컬 또는 S3)
+  image:
+    storage-type: ${IMAGE_STORAGE_TYPE:local}  # local, s3
+    upload-dir: ${IMAGE_UPLOAD_DIR:/app/uploads}
+    base-url: ${IMAGE_BASE_URL:http://localhost:8083/images}
+  
+  # 페이징 기본 설정
+  pagination:
+    default-page-size: 20
+    max-page-size: 100
+  
+  # 모집 기능 설정
+  recruitment:
+    max-participants: 100
+    auto-close-scheduler-cron: "0 */10 * * * *"  # 10분마다 실행
+

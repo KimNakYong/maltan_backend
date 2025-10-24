@@ -1,0 +1,51 @@
+name: Deploy User Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/user-service/**'
+      - '.github/workflows/deploy-user.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy User Service to Ubuntu Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd ~/maltan-project/maltan-backend
+            git pull origin main
+            
+            cd backend/user-service
+            mvn clean package -DskipTests
+            docker build -t user-service:latest .
+            
+            docker stop user-service || true
+            docker rm user-service || true
+            
+            docker run -d \
+              --name user-service \
+              --network maltan-network \
+              -p 8081:8081 \
+              -e DB_HOST=10.0.2.15 \
+              -e DB_PORT=5432 \
+              -e DB_NAME=user_db \
+              -e SERVER_PORT=8081 \
+              user-service:latest
+            
+            sleep 10
+            docker ps | grep user-service
+            docker logs --tail 50 user-service
+
