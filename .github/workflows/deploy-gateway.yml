@@ -37,6 +37,7 @@ jobs:
           docker run -d \
             --name gateway-service \
             --network maltan-network \
+            --restart unless-stopped \
             -p 8080:8080 \
             -e SERVER_PORT=8080 \
             gateway-service:latest
