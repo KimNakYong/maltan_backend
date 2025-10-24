@@ -147,3 +147,9 @@ mvn test
 
 Maltan Project Team
 
+## 🚀 CI/CD
+
+GitHub Actions를 통한 자동 배포가 설정되어 있습니다.
+- `backend/community-service/**` 경로의 변경사항이 `main` 브랜치에 push되면 자동으로 배포됩니다.
+- Self-Hosted Runner가 Ubuntu 서버에서 직접 빌드 및 배포를 수행합니다.
+
