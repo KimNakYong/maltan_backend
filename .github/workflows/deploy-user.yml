@@ -7,7 +7,7 @@ on:
     paths:
       - 'backend/user-service/**'
       - '.github/workflows/deploy-user.yml'
-  workflow_dispatch:
+  workflow_dispatch:  # 수동 실행 가능
 
 jobs:
   deploy:
