@@ -211,9 +211,13 @@ public class PostService {
             );
         }
         
+        // TODO: User Service에서 사용자 이름 조회
+        String userName = "사용자" + post.getUserId();  // 임시값
+        
         return PostDto.builder()
             .id(post.getId())
             .userId(post.getUserId())
+            .userName(userName)
             .title(post.getTitle())
             .content(post.getContent())
             .category(post.getCategory())

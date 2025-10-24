@@ -16,7 +16,7 @@ import java.util.List;
 public class PostDto {
     private Long id;
     private Long userId;
-    private String userNickname;  // User Service에서 조회
+    private String userName;  // User Service에서 조회 (회원가입 시 입력한 이름)
     private String userProfileImage;  // User Service에서 조회
     
     private String title;
