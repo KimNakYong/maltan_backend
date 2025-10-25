@@ -28,6 +28,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
+                .requestMatchers("OPTIONS", "/**").permitAll() // OPTIONS 요청 허용
                 .requestMatchers("/user/auth/register", "/user/auth/health").permitAll()
                 .requestMatchers("/user/auth/check-username/**", "/user/auth/check-email/**").permitAll()
                 .requestMatchers("/user/auth/username/**", "/user/auth/email/**").permitAll()
