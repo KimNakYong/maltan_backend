@@ -244,6 +244,8 @@ public class PostService {
             .createdAt(post.getCreatedAt())
             .updatedAt(post.getUpdatedAt())
             .images(imageUrls)
+            .isPinned(post.getIsPinned())
+            .pinnedUntil(post.getPinnedUntil())
             .isLiked(isLiked)
             .isDisliked(isDisliked)
             .isJoined(isJoined)

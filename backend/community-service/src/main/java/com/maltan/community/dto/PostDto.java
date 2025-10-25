@@ -50,6 +50,10 @@ public class PostDto {
     
     private List<String> images;
     
+    // 인기 게시글
+    private Boolean isPinned;
+    private LocalDateTime pinnedUntil;
+    
     // 사용자 관련 상태 (로그인한 사용자)
     private Boolean isLiked;
     private Boolean isDisliked;

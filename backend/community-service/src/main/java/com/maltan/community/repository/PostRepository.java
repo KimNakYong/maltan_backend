@@ -57,13 +57,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         @Param("now") LocalDateTime now
     );
     
-    // 복합 검색 (카테고리 + 지역)
+    // 복합 검색 (카테고리 + 지역) - 인기 게시글 우선 정렬
     @Query("SELECT p FROM Post p WHERE p.isDeleted = false " +
            "AND (:category IS NULL OR p.category = :category) " +
            "AND (:regionSi IS NULL OR p.regionSi = :regionSi) " +
            "AND (:regionGu IS NULL OR p.regionGu = :regionGu) " +
            "AND (:regionDong IS NULL OR p.regionDong = :regionDong) " +
-           "AND (:isRecruitment IS NULL OR p.isRecruitment = :isRecruitment)")
+           "AND (:isRecruitment IS NULL OR p.isRecruitment = :isRecruitment) " +
+           "ORDER BY " +
+           "CASE WHEN p.isPinned = true AND p.pinnedUntil > CURRENT_TIMESTAMP THEN 0 ELSE 1 END, " +
+           "p.createdAt DESC")
     Page<Post> findByFilters(
         @Param("category") String category,
         @Param("regionSi") String regionSi,
@@ -78,5 +81,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
            "AND p.createdAt > :since " +
            "ORDER BY p.likeCount DESC, p.viewCount DESC")
     Page<Post> findPopularPosts(@Param("since") LocalDateTime since, Pageable pageable);
+    
+    // 특정 기간 이후 가장 많은 추천을 받은 게시글 조회
+    @Query("SELECT p FROM Post p WHERE p.isDeleted = false " +
+           "AND p.createdAt >= :since " +
+           "ORDER BY p.likeCount DESC, p.viewCount DESC")
+    List<Post> findTopByLikeCountSince(@Param("since") LocalDateTime since, int limit);
+    
+    // 고정 기간이 만료된 게시글 조회
+    List<Post> findByIsPinnedTrueAndPinnedUntilBefore(LocalDateTime now);
 }
 

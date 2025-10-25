@@ -108,6 +108,14 @@ public class Post {
     @Builder.Default
     private PostStatus status = PostStatus.ACTIVE;
     
+    // 인기 게시글 (상단 고정)
+    @Column(name = "is_pinned")
+    @Builder.Default
+    private Boolean isPinned = false;
+    
+    @Column(name = "pinned_until")
+    private LocalDateTime pinnedUntil;
+    
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -199,6 +207,22 @@ public class Post {
     public void removeImage(PostImage image) {
         this.images.remove(image);
         image.setPost(null);
+    }
+    
+    public void pin(LocalDateTime until) {
+        this.isPinned = true;
+        this.pinnedUntil = until;
+    }
+    
+    public void unpin() {
+        this.isPinned = false;
+        this.pinnedUntil = null;
+    }
+    
+    public boolean isPinnedAndValid() {
+        return this.isPinned && 
+               this.pinnedUntil != null && 
+               LocalDateTime.now().isBefore(this.pinnedUntil);
     }
 }
 
