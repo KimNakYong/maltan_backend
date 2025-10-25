@@ -1,0 +1,49 @@
+name: Deploy Gateway Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/gateway-service/**'
+      - '.github/workflows/deploy-gateway.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Gateway Service
+        working-directory: backend/gateway-service
+        run: |
+          mvn clean package -DskipTests
+      
+      - name: Build Docker Image
+        working-directory: backend/gateway-service
+        run: |
+          docker build -t gateway-service:latest .
+      
+      - name: Stop Old Container
+        run: |
+          docker stop gateway-service || true
+          docker rm gateway-service || true
+      
+      - name: Run New Container
+        run: |
+          docker run -d \
+            --name gateway-service \
+            --network maltan-network \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -e SERVER_PORT=8080 \
+            gateway-service:latest
+      
+      - name: Health Check
+        run: |
+          sleep 10
+          docker ps | grep gateway-service
+          docker logs --tail 50 gateway-service

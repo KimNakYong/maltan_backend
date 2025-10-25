@@ -1,0 +1,65 @@
+name: Deploy Community Service to Ubuntu Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to Ubuntu Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            # 프로젝트 디렉토리로 이동
+            cd ~/maltan-project/maltan_backend/community-service
+            
+            # Git pull
+            git pull origin main
+            
+            # Maven 빌드
+            mvn clean package -DskipTests
+            
+            # Docker 이미지 빌드
+            docker build -t community-service:latest .
+            
+            # 기존 컨테이너 중지 및 제거
+            docker stop community-service || true
+            docker rm community-service || true
+            
+            # 새 컨테이너 실행
+            docker run -d \
+              --name community-service \
+              --network maltan-network \
+              -p 8083:8083 \
+              -e DB_HOST=10.0.2.15 \
+              -e DB_PORT=5432 \
+              -e DB_NAME=community_db \
+              -e DB_USERNAME=community_user \
+              -e DB_PASSWORD=Community@2025! \
+              -e REDIS_HOST=10.0.2.15 \
+              -e REDIS_PORT=6379 \
+              -e SERVER_PORT=8083 \
+              community-service:latest
+            
+            # 컨테이너 상태 확인
+            echo "Waiting for service to start..."
+            sleep 10
+            docker ps | grep community-service
+            docker logs --tail 50 community-service
+            
+            # 헬스체크
+            echo "Checking health..."
+            curl -f http://localhost:8083/actuator/health || echo "Health check failed"
+

@@ -1,203 +1,278 @@
-# Maltan Backend
+# Maltan Backend (MSA)
 
-## 🏗️ **아키텍처**
+지역 기반 커뮤니티 플랫폼 - 백엔드 마이크로서비스
 
-### **MSA 구조 (5개 서비스)**
-- **User Service**: 사용자 관리 + 인증
-- **Place Service**: 장소 + 리뷰 관리
-- **Recommendation Service**: 추천 + 위치 검색
-- **Community Service**: 커뮤니티 + 알림
-- **Gateway Service**: API 게이트웨이
+## 🏗️ 아키텍처
 
-### **기술 스택**
-- **언어**: Java 17 + Spring Boot 3.x
-- **데이터베이스**: PostgreSQL + Redis
-- **인프라**: Docker + Docker Compose
-- **인증**: JWT
-
-## 🚀 **빠른 시작**
-
-### **1. 환경 설정**
-```bash
-# 환경 변수 설정
-cp docker/env.example docker/.env
-# .env 파일에서 API 키 등 설정
+```
+┌─────────────────────────────────────────┐
+│        Gateway Service (8080)            │
+│         - API 라우팅                     │
+│         - 인증/인가                      │
+└─────────────────────────────────────────┘
+                    ↓
+┌──────────────┬──────────────┬──────────────┐
+│ User Service │ Place Service│Community Svc  │
+│   (8081)     │   (8082)     │   (8083)     │
+└──────────────┴──────────────┴──────────────┘
+                    ↓
+┌──────────────┬──────────────┬──────────────┐
+│  PostgreSQL  │    Redis     │  Prometheus  │
+│   (5432)     │   (6379)     │   (9090)     │
+└──────────────┴──────────────┴──────────────┘
 ```
 
-### **2. 서비스 시작**
-```bash
-# 전체 서비스 시작
-cd docker
-docker-compose up -d
-
-# 서비스 상태 확인
-docker-compose ps
-```
-
-### **3. 접속 URL**
-- **API Gateway**: http://localhost:8080
-- **User Service**: http://localhost:8081
-- **Place Service**: http://localhost:8082
-- **Recommendation Service**: http://localhost:8083
-- **Community Service**: http://localhost:8084
-
-## 📁 **프로젝트 구조**
+## 📁 프로젝트 구조 (Monorepo)
 
 ```
 maltan-backend/
-├── backend/                    # 백엔드 서비스들
-│   ├── user-service/
-│   ├── place-service/
-│   ├── recommendation-service/
-│   ├── community-service/
-│   └── gateway-service/
-├── docker/                     # Docker 설정
-│   ├── docker-compose.yml
-│   ├── init-scripts/
-│   └── monitoring/
-├── docs/                       # 백엔드 관련 문서
-│   ├── architecture/
-│   ├── infrastructure/
-│   └── development/
-└── README.md
+├── backend/
+│   ├── user-service/        # 사용자 관리 서비스
+│   ├── place-service/       # 장소 관리 서비스
+│   ├── community-service/   # 커뮤니티 서비스
+│   ├── gateway-service/     # API Gateway
+│   └── recommendation-service/ # 추천 서비스 (예정)
+├── docs/                    # 문서
+│   ├── architecture/        # 아키텍처 문서
+│   ├── infrastructure/      # 인프라 가이드
+│   ├── CI_CD_SETUP_GUIDE.md
+│   ├── DATABASE_STRATEGY_GUIDE.md
+│   └── ...
+└── .github/
+    └── workflows/           # GitHub Actions CI/CD
+        ├── deploy-user.yml
+        ├── deploy-place.yml
+        ├── deploy-community.yml
+        └── deploy-gateway.yml
 ```
 
-## 🔧 **개발 환경**
+## 🚀 기술 스택
 
-### **요구사항**
-- **RAM**: 4GB (최소)
-- **CPU**: 2 코어 (최소)
-- **Storage**: 30GB (최소)
-- **OS**: Ubuntu 22.04 LTS (권장)
+- **Java 17** + **Spring Boot 3.2.0**
+- **Spring Cloud Gateway** - API Gateway
+- **Spring Security** + **JWT** - 인증/인가
+- **Spring Data JPA** - ORM
+- **PostgreSQL 15** - 데이터베이스
+- **Redis** - 캐싱 및 세션
+- **Maven** - 빌드 도구
+- **Docker** - 컨테이너화
+- **GitHub Actions** - CI/CD
 
-### **개발 도구**
-- Docker & Docker Compose
-- Java 17
-- Git
+## 🛠️ 로컬 개발 환경 설정
 
-## 📊 **리소스 할당**
+### 1. 사전 요구사항
 
-### **서비스별 리소스**
-| 서비스 | 메모리 | CPU | 용도 |
-|--------|--------|-----|------|
-| PostgreSQL | 512MB | 0.5 코어 | 메인 데이터베이스 |
-| Redis | 128MB | 0.25 코어 | 캐싱 및 세션 |
-| User Service | 256MB | 0.3 코어 | 사용자 관리 |
-| Place Service | 256MB | 0.3 코어 | 장소 관리 |
-| Recommendation Service | 256MB | 0.3 코어 | 추천 시스템 |
-| Community Service | 256MB | 0.3 코어 | 커뮤니티 |
-| Gateway Service | 256MB | 0.3 코어 | API 게이트웨이 |
+- Java 17+
+- Maven 3.8+
+- PostgreSQL 15+
+- Redis (선택사항)
 
-## 🛠️ **개발 워크플로우**
+### 2. 데이터베이스 설정
 
-### **브랜치 전략**
-```
-main (메인 브랜치)
-├── develop (개발 브랜치)
-├── feature/user-service-auth
-├── feature/place-service-review
-├── feature/recommendation-algorithm
-├── feature/community-board
-└── feature/gateway-routing
-```
+```sql
+-- User Service DB
+CREATE DATABASE user_db;
+CREATE USER user_user WITH PASSWORD 'User@2025!';
+GRANT ALL PRIVILEGES ON DATABASE user_db TO user_user;
 
-### **커밋 규칙**
-```
-feat: 새로운 기능 추가
-fix: 버그 수정
-docs: 문서 수정
-style: 코드 스타일 변경
-refactor: 코드 리팩토링
-test: 테스트 추가/수정
-chore: 빌드/설정 변경
+-- Place Service DB
+CREATE DATABASE place_db;
+CREATE USER place_user WITH PASSWORD 'Place@2025!';
+GRANT ALL PRIVILEGES ON DATABASE place_db TO place_user;
+
+-- Community Service DB
+CREATE DATABASE community_db;
+CREATE USER community_user WITH PASSWORD 'Community@2025!';
+GRANT ALL PRIVILEGES ON DATABASE community_db TO community_user;
 ```
 
-### **서비스별 개발**
+### 3. 서비스 실행
+
 ```bash
-# User Service 개발
-git checkout -b feature/user-service-auth
-# 개발 작업...
-git add backend/user-service/
-git commit -m "feat(user-service): implement JWT authentication"
+# User Service
+cd backend/user-service
+mvn spring-boot:run
+
+# Place Service
+cd backend/place-service
+mvn spring-boot:run
+
+# Community Service
+cd backend/community-service
+mvn spring-boot:run
+
+# Gateway Service
+cd backend/gateway-service
+mvn spring-boot:run
 ```
 
-## 📚 **문서**
+## 📦 서비스 목록
 
-### **🏗️ Architecture (아키텍처)**
-- [MSA 아키텍처 설계](./docs/architecture/MSA_Architecture_Plan.md)
-- [MSA 배포 전략](./docs/architecture/MSA_Deployment_Strategy.md)
+### 1. Gateway Service (8080)
+- API 라우팅 및 로드 밸런싱
+- JWT 기반 인증/인가
+- Rate Limiting
+- CORS 설정
 
-### **🔧 Infrastructure (인프라)**
-- [Docker 인프라 가이드](./docs/infrastructure/Docker_Infrastructure_Guide.md)
-- [리소스 할당 가이드](./docs/infrastructure/Resource_Allocation_Guide.md)
-- [VirtualBox Ubuntu 설정](./docs/infrastructure/VirtualBox_Ubuntu_Setup_Guide.md)
+### 2. User Service (8081)
+- 사용자 회원가입/로그인
+- JWT 토큰 발급/검증
+- 프로필 관리
+- 선호 지역 설정
 
-### **💻 Development (개발)**
-- [SSH 기반 개발 워크플로우](./docs/development/SSH_Development_Workflow.md)
-- [Git 저장소 전략](./docs/development/Git_Repository_Strategy.md)
+**주요 API:**
+- `POST /api/users/register` - 회원가입
+- `POST /api/users/login` - 로그인
+- `GET /api/users/profile` - 프로필 조회
+- `PUT /api/users/profile` - 프로필 수정
 
-### **📖 전체 문서**
-- [문서 인덱스](./docs/README.md)
+### 3. Place Service (8082)
+- 장소 등록/수정/삭제
+- 장소 검색 및 필터링
+- 지역별 장소 조회
+- 카테고리별 분류
 
-## 🔍 **모니터링**
+### 4. Community Service (8083)
+- 게시글 CRUD
+- 댓글 시스템
+- 추천/비추천 기능
+- 모임 인원 모집 기능
+- 지역별 커뮤니티
 
-### **서비스 상태 확인**
+**주요 기능:**
+- ✅ 게시글 작성/수정/삭제
+- ✅ 댓글 및 대댓글
+- ✅ 추천/비추천 (중복 방지)
+- ✅ 모임 참여/취소 (토글)
+- ✅ 실시간 모집 현황
+- ✅ 자동 마감 처리 (Scheduler)
+
+**자세한 내용:** [backend/community-service/README.md](backend/community-service/README.md)
+
+## 🐳 Docker 배포
+
+각 서비스는 Docker 컨테이너로 실행됩니다:
+
 ```bash
-# 전체 서비스 상태
-docker-compose ps
+# 빌드
+cd backend/user-service
+mvn clean package -DskipTests
+docker build -t user-service:latest .
 
-# 특정 서비스 로그
-docker-compose logs user-service
-
-# 리소스 사용량
-docker stats
+# 실행
+docker run -d \
+  --name user-service \
+  --network maltan-network \
+  -p 8081:8081 \
+  -e DB_HOST=10.0.2.15 \
+  -e DB_PORT=5432 \
+  -e DB_NAME=user_db \
+  user-service:latest
 ```
 
-### **헬스체크**
+## 🚀 자동 배포 (CI/CD)
+
+### GitHub Actions Self-Hosted Runner
+
+`main` 브랜치에 push하면 자동으로 Ubuntu 서버에 배포됩니다.
+
+**배포 프로세스:**
+1. 코드 체크아웃
+2. Maven 빌드 (`mvn clean package`)
+3. Docker 이미지 빌드
+4. 기존 컨테이너 중지/제거
+5. 새 컨테이너 실행
+6. Health Check
+
+**Path Filtering (Monorepo):**
+- `backend/user-service/**` → User Service 배포
+- `backend/place-service/**` → Place Service 배포
+- `backend/community-service/**` → Community Service 배포
+- `backend/gateway-service/**` → Gateway Service 배포
+
+**자세한 내용:** [docs/CI_CD_SETUP_GUIDE.md](docs/CI_CD_SETUP_GUIDE.md)
+
+## 📊 데이터베이스 전략
+
+**Unified DB + Schema Separation**
+
+- 단일 PostgreSQL 인스턴스
+- 서비스별 독립 데이터베이스
+- Schema per Service 패턴
+- 외부 PostgreSQL (Docker 외부)
+
+**장점:**
+- ✅ 서비스 간 데이터 독립성
+- ✅ 관리 용이성
+- ✅ 백업/복원 편리
+- ✅ 비용 효율적
+
+**자세한 내용:** [docs/DATABASE_STRATEGY_GUIDE.md](docs/DATABASE_STRATEGY_GUIDE.md)
+
+## 📚 문서
+
+### 아키텍처
+- [MSA 아키텍처 계획](docs/architecture/MSA_Architecture_Plan.md)
+- [MSA 배포 전략](docs/architecture/MSA_Deployment_Strategy.md)
+
+### 인프라
+- [Docker 인프라 가이드](docs/infrastructure/Docker_Infrastructure_Guide.md)
+- [리소스 할당 가이드](docs/infrastructure/Resource_Allocation_Guide.md)
+- [VirtualBox Ubuntu 설정](docs/infrastructure/VirtualBox_Ubuntu_Setup_Guide.md)
+
+### 개발
+- [Git 리포지토리 전략](docs/development/Git_Repository_Strategy.md)
+- [SSH 개발 워크플로우](docs/development/SSH_Development_Workflow.md)
+
+### 운영
+- [CI/CD 설정 가이드](docs/CI_CD_SETUP_GUIDE.md)
+- [Self-Hosted Runner 가이드](docs/SELF_HOSTED_RUNNER_GUIDE.md)
+- [PostgreSQL 설정 가이드](docs/POSTGRESQL_SETUP_GUIDE.md)
+- [트래픽 관리 가이드](docs/TRAFFIC_MANAGEMENT_GUIDE.md)
+
+### 서비스별
+- [Community Service 설계](docs/COMMUNITY_SERVICE_DESIGN.md)
+- [User Service API 문서](backend/user-service/API_DOCUMENTATION.md)
+
+## 🧪 테스트
+
 ```bash
-# API Gateway 헬스체크
-curl http://localhost:8080/actuator/health
+# 전체 서비스 테스트
+mvn test
 
-# User Service 헬스체크
-curl http://localhost:8081/actuator/health
+# 특정 서비스 테스트
+cd backend/user-service
+mvn test
 ```
 
-## 🚨 **문제 해결**
+## 🔒 보안
 
-### **일반적인 문제들**
-1. **포트 충돌**: `netstat -tlnp | grep :8080`
-2. **메모리 부족**: `docker stats`로 확인
-3. **서비스 시작 실패**: `docker-compose logs <service-name>`
+- JWT 기반 인증
+- Spring Security 설정
+- CORS 정책
+- Rate Limiting (Gateway)
+- SQL Injection 방지 (JPA)
 
-### **유용한 명령어**
-```bash
-# 서비스 재시작
-docker-compose restart user-service
+## 📈 모니터링
 
-# 특정 서비스만 시작
-docker-compose up user-service
+- **Actuator** - Health Check, Metrics
+- **Prometheus** (예정) - 메트릭 수집
+- **Grafana** (예정) - 시각화 대시보드
 
-# 전체 서비스 중지
-docker-compose down
-```
+## 🤝 Contributing
 
-## 👥 **개발팀**
+1. Feature 브랜치 생성
+2. 변경사항 커밋
+3. Push 및 Pull Request
 
-- **개발자 A**: User Service + Place Service + Gateway Service
-- **개발자 B**: Recommendation Service + Community Service
-
-## 📄 **라이선스**
+## 📝 License
 
 MIT License
 
-## 🤝 **기여하기**
+## 👥 팀
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Maltan Project Team
 
 ---
 
-**우리동네 소개 서비스 백엔드 API를 개발하세요!** 🚀
+**Made with ❤️ by Maltan Team**
