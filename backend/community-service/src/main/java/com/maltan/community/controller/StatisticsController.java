@@ -31,8 +31,8 @@ public class StatisticsController {
         // 모집 게시글 수
         Long totalRecruitmentPosts = postRepository.countByIsRecruitmentTrueAndIsDeletedFalse();
         
-        // 활성 모집 게시글 수 (OPEN 상태)
-        Long activeRecruitmentPosts = postRepository.countByIsRecruitmentTrueAndStatusAndIsDeletedFalse(PostStatus.OPEN);
+        // 활성 모집 게시글 수 (ACTIVE 상태)
+        Long activeRecruitmentPosts = postRepository.countByIsRecruitmentTrueAndStatusAndIsDeletedFalse(PostStatus.ACTIVE);
         
         // 전체 투표 수 (게시글 + 댓글)
         Long totalVotes = postVoteRepository.count() + commentVoteRepository.count();
