@@ -62,10 +62,6 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
      */
     Page<Place> findByIsActiveTrueOrderByViewCountDescCreatedAtDesc(Pageable pageable);
 
-    /**
-     * 최신 장소 조회 (페이징)
-     */
-    Page<Place> findByIsActiveTrueOrderByCreatedAtDesc(Pageable pageable);
 
     /**
      * 평점 높은 장소 조회 (페이징)
