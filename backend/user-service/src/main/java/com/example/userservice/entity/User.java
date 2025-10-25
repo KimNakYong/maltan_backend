@@ -22,10 +22,9 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank(message = "사용자명은 필수입니다")
     @Size(min = 3, max = 50, message = "사용자명은 3-50자 사이여야 합니다")
     @Column(unique = true, nullable = false)
-    private String username;
+    private String username; // email을 기본값으로 사용
     
     @NotBlank(message = "이메일은 필수입니다")
     @Email(message = "올바른 이메일 형식이 아닙니다")

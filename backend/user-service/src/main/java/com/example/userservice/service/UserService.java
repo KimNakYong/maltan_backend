@@ -31,9 +31,15 @@ public class UserService implements UserDetailsService {
      * 사용자 등록
      */
     public UserResponse registerUser(UserRegistrationRequest request) {
+        // username이 없으면 email을 사용
+        String username = request.getUsername();
+        if (username == null || username.trim().isEmpty()) {
+            username = request.getEmail();
+        }
+        
         // 중복 검사
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("이미 존재하는 사용자명입니다: " + request.getUsername());
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("이미 존재하는 사용자명입니다: " + username);
         }
         
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -42,10 +48,10 @@ public class UserService implements UserDetailsService {
         
         // 새 사용자 생성
         User user = new User();
-        user.setUsername(request.getUsername());
+        user.setUsername(username);
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setName(request.getUsername()); // username을 name으로 사용
+        user.setName(request.getName()); // 실제 이름 사용
         user.setPhoneNumber(request.getPhone());
         user.setRole(User.Role.USER);
         user.setEnabled(true);
