@@ -39,6 +39,7 @@ jobs:
             --network maltan-network \
             --restart unless-stopped \
             -p 8081:8081 \
+            -v /var/run/docker.sock:/var/run/docker.sock \
             -e DB_HOST=10.0.2.15 \
             -e DB_PORT=3306 \
             -e DB_NAME=user_service \
