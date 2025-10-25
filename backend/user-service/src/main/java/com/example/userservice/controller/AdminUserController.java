@@ -1,11 +1,15 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.ApiResponse;
+import com.example.userservice.dto.DatabaseMetrics;
 import com.example.userservice.dto.ServiceMetrics;
+import com.example.userservice.dto.SystemLog;
 import com.example.userservice.dto.SystemMetrics;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
+import com.example.userservice.service.DatabaseMetricsService;
+import com.example.userservice.service.DockerLogsService;
 import com.example.userservice.service.DockerMetricsService;
 import com.example.userservice.service.SystemMetricsService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,8 @@ public class AdminUserController {
     private final UserRepository userRepository;
     private final SystemMetricsService systemMetricsService;
     private final DockerMetricsService dockerMetricsService;
+    private final DockerLogsService dockerLogsService;
+    private final DatabaseMetricsService databaseMetricsService;
     
     /**
      * 사용자 목록 조회 (페이징)
@@ -218,6 +224,56 @@ public class AdminUserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("서비스 메트릭 조회 실패: " + e.getMessage(), 500));
+        }
+    }
+    
+    /**
+     * 시스템 로그 조회
+     */
+    @GetMapping("/logs")
+    public ResponseEntity<ApiResponse<List<SystemLog>>> getSystemLogs(
+            @RequestParam(defaultValue = "100") int limit,
+            @RequestParam(required = false) String service,
+            @RequestParam(required = false) String level
+    ) {
+        try {
+            List<SystemLog> logs;
+            
+            if (service != null && !service.equals("all")) {
+                // 특정 서비스의 로그만 조회
+                String serviceName = service.toLowerCase() + "-service";
+                logs = dockerLogsService.getServiceLogs(serviceName, limit);
+            } else {
+                // 모든 서비스의 로그 조회
+                logs = dockerLogsService.getAllServiceLogs(limit);
+            }
+            
+            // 레벨 필터링
+            if (level != null && !level.equals("all")) {
+                final String filterLevel = level.toUpperCase();
+                logs = logs.stream()
+                    .filter(log -> log.getLevel().equals(filterLevel))
+                    .collect(Collectors.toList());
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success(logs));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("로그 조회 실패: " + e.getMessage(), 500));
+        }
+    }
+    
+    /**
+     * 데이터베이스 메트릭 조회
+     */
+    @GetMapping("/databases/metrics")
+    public ResponseEntity<ApiResponse<List<DatabaseMetrics>>> getDatabaseMetrics() {
+        try {
+            List<DatabaseMetrics> metrics = databaseMetricsService.getAllDatabaseMetrics();
+            return ResponseEntity.ok(ApiResponse.success(metrics));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("데이터베이스 메트릭 조회 실패: " + e.getMessage(), 500));
         }
     }
 }
