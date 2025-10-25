@@ -7,7 +7,7 @@ on:
     paths:
       - 'backend/place-service/**'
       - '.github/workflows/deploy-place.yml'
-  workflow_dispatch:
+  workflow_dispatch:  # 수동 실행 가능
 
 jobs:
   deploy:
@@ -39,14 +39,18 @@ jobs:
             --network maltan-network \
             --restart unless-stopped \
             -p 8082:8082 \
+            -v place_uploads:/app/uploads \
             -e DB_HOST=10.0.2.15 \
-            -e DB_PORT=5432 \
-            -e DB_NAME=place_db \
+            -e DB_PORT=3306 \
+            -e DB_NAME=placedb \
+            -e DB_USERNAME=root \
+            -e DB_PASSWORD=1234 \
             -e SERVER_PORT=8082 \
+            -e UPLOAD_DIR=/app/uploads \
             place-service:latest
       
       - name: Health Check
         run: |
-          sleep 10
+          sleep 30
           docker ps | grep place-service
           docker logs --tail 50 place-service
