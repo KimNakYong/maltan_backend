@@ -26,6 +26,7 @@ public class SecurityConfig {
                 // 공개 API - 인증 불필요
                 .requestMatchers("/api/community/posts/**").permitAll()
                 .requestMatchers("/api/community/comments/**").permitAll()
+                .requestMatchers("/api/community/statistics").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/info").permitAll()
                 
