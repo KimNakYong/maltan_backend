@@ -19,11 +19,13 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      initialization-fail-timeout: 0  # 시작 시 실패해도 계속 재시도
   
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    defer-datasource-initialization: true  # 데이터소스 초기화 지연
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
