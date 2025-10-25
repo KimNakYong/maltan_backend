@@ -1,7 +1,6 @@
 package com.example.userservice.repository;
 
 import com.example.userservice.entity.User;
-import com.example.userservice.model.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,7 +53,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 역할별 사용자 수 조회
      */
-    long countByRole(UserRole role);
+    long countByRole(User.Role role);
     
     /**
      * 활성화 상태별 사용자 수 조회

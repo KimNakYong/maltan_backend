@@ -2,8 +2,7 @@ package com.example.userservice.controller;
 
 import com.example.userservice.dto.ApiResponse;
 import com.example.userservice.dto.UserResponse;
-import com.example.userservice.model.User;
-import com.example.userservice.model.UserRole;
+import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -101,7 +100,7 @@ public class AdminUserController {
             User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
             
-            UserRole newRole = UserRole.valueOf(role.toUpperCase());
+            User.Role newRole = User.Role.valueOf(role.toUpperCase());
             user.setRole(newRole);
             userRepository.save(user);
             
@@ -172,7 +171,7 @@ public class AdminUserController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getStats() {
         try {
             long totalUsers = userRepository.count();
-            long adminUsers = userRepository.countByRole(UserRole.ADMIN);
+            long adminUsers = userRepository.countByRole(User.Role.ADMIN);
             long activeUsers = userRepository.countByEnabled(true);
             
             Map<String, Object> stats = new HashMap<>();
