@@ -1,12 +1,12 @@
-# 멀티 스테이지 빌드를 사용한 Dockerfile
+# 가장 안정적인 Dockerfile - 공식 OpenJDK 이미지 사용
 
-# 1단계: 빌드 스테이지 - Amazon Corretto 기반 (가장 안정적)
-FROM amazoncorretto:17 AS builder
+# 1단계: 빌드 스테이지
+FROM openjdk:17-jdk AS builder
 
 # Maven 설치
-RUN yum update -y && \
-    yum install -y maven && \
-    yum clean all
+RUN apt-get update && \
+    apt-get install -y maven && \
+    rm -rf /var/lib/apt/lists/*
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -18,8 +18,8 @@ COPY src ./src
 # Maven으로 JAR 파일 빌드
 RUN mvn clean package -DskipTests -B
 
-# 2단계: 실행 스테이지 - Eclipse Temurin JRE 사용
-FROM eclipse-temurin:17-jre
+# 2단계: 실행 스테이지
+FROM openjdk:17-jre
 
 # 작업 디렉토리 설정
 WORKDIR /app
