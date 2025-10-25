@@ -1,0 +1,50 @@
+name: Deploy Recommendation Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/recommendation-service/**'
+      - '.github/workflows/deploy-recommendation.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Recommendation Service
+        working-directory: backend/recommendation-service
+        run: |
+          mvn clean package -DskipTests
+      
+      - name: Build Docker Image
+        working-directory: backend/recommendation-service
+        run: |
+          docker build -t recommendation-service:latest .
+      
+      - name: Stop Old Container
+        run: |
+          docker stop recommendation-service || true
+          docker rm recommendation-service || true
+      
+      - name: Run New Container
+        run: |
+          docker run -d \
+            --name recommendation-service \
+            --network maltan-network \
+            --restart unless-stopped \
+            -p 8084:8084 \
+            -e SERVER_PORT=8084 \
+            recommendation-service:latest
+      
+      - name: Health Check
+        run: |
+          sleep 10
+          docker ps | grep recommendation-service
+          docker logs --tail 50 recommendation-service
+
