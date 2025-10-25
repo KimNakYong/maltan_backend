@@ -65,22 +65,19 @@ services:
     build:
       context: ../backend/user-service
       dockerfile: Dockerfile
-    container_name: maltan-user-service
+    container_name: user-service
     ports:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8081
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/user_db
-      - DATABASE_USERNAME=maltan_user
-      - DATABASE_PASSWORD=maltan_pass123
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET=maltan-jwt-secret-key-2024
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=userdb
+      - DB_USERNAME=root
+      - DB_PASSWORD=1234
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
+      mysql:
         condition: service_healthy
     networks:
       - maltan-network
@@ -94,7 +91,7 @@ services:
           memory: 128M
           cpus: '0.1'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/user/auth/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -334,6 +331,33 @@ services:
           memory: 64M
           cpus: '0.1'
 
+  # MySQL 서버
+  mysql:
+    image: mysql:8.0
+    container_name: userdb-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: '1234'
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: '1234'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
 # ===========================================
 # 네트워크 및 볼륨
 # ===========================================
@@ -348,3 +372,4 @@ volumes:
   postgres_data:
   redis_data:
   grafana_data:
+  mysql_data:
