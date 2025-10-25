@@ -4,6 +4,8 @@ import com.maltan.community.model.Post;
 import com.maltan.community.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +35,8 @@ public class PopularPostScheduler {
             
             // 지난 24시간 동안 가장 많은 추천을 받은 게시글 찾기
             LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
-            List<Post> topPosts = postRepository.findTopByLikeCountSince(yesterday, 1);
+            Pageable pageable = PageRequest.of(0, 1); // 첫 번째 페이지, 1개만 조회
+            List<Post> topPosts = postRepository.findTopByLikeCountSince(yesterday, pageable);
             
             if (!topPosts.isEmpty()) {
                 Post topPost = topPosts.get(0);

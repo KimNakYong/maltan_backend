@@ -86,7 +86,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.isDeleted = false " +
            "AND p.createdAt >= :since " +
            "ORDER BY p.likeCount DESC, p.viewCount DESC")
-    List<Post> findTopByLikeCountSince(@Param("since") LocalDateTime since, int limit);
+    List<Post> findTopByLikeCountSince(@Param("since") LocalDateTime since, Pageable pageable);
     
     // 고정 기간이 만료된 게시글 조회
     List<Post> findByIsPinnedTrueAndPinnedUntilBefore(LocalDateTime now);
