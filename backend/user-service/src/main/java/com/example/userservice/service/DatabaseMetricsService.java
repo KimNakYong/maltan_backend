@@ -31,22 +31,40 @@ public class DatabaseMetricsService {
     public List<DatabaseMetrics> getAllDatabaseMetrics() {
         List<DatabaseMetrics> metricsList = new ArrayList<>();
         
-        // MySQL 메트릭
+        // MySQL 메트릭 (User Service용)
         try {
-            DatabaseMetrics mysqlMetrics = getMySQLMetrics();
-            metricsList.add(mysqlMetrics);
+            DatabaseMetrics mysqlUserMetrics = getMySQLUserMetrics();
+            metricsList.add(mysqlUserMetrics);
         } catch (Exception e) {
-            log.error("Failed to get MySQL metrics", e);
-            metricsList.add(createErrorMetrics("MySQL", "mysql"));
+            log.error("Failed to get MySQL (User) metrics", e);
+            metricsList.add(createErrorMetrics("MySQL (User Service)", "mysql"));
         }
         
-        // PostgreSQL 메트릭
+        // MySQL 메트릭 (Place Service용)
         try {
-            DatabaseMetrics postgresMetrics = getPostgreSQLMetrics();
-            metricsList.add(postgresMetrics);
+            DatabaseMetrics mysqlPlaceMetrics = getMySQLPlaceMetrics();
+            metricsList.add(mysqlPlaceMetrics);
         } catch (Exception e) {
-            log.error("Failed to get PostgreSQL metrics", e);
-            metricsList.add(createErrorMetrics("PostgreSQL", "postgresql"));
+            log.error("Failed to get MySQL (Place) metrics", e);
+            metricsList.add(createErrorMetrics("MySQL (Place Service)", "mysql"));
+        }
+        
+        // PostgreSQL 메트릭 (Community Service용)
+        try {
+            DatabaseMetrics postgresCommunityMetrics = getPostgreSQLCommunityMetrics();
+            metricsList.add(postgresCommunityMetrics);
+        } catch (Exception e) {
+            log.error("Failed to get PostgreSQL (Community) metrics", e);
+            metricsList.add(createErrorMetrics("PostgreSQL (Community Service)", "postgresql"));
+        }
+        
+        // PostgreSQL 메트릭 (Recommendation Service용)
+        try {
+            DatabaseMetrics postgresRecommendationMetrics = getPostgreSQLRecommendationMetrics();
+            metricsList.add(postgresRecommendationMetrics);
+        } catch (Exception e) {
+            log.error("Failed to get PostgreSQL (Recommendation) metrics", e);
+            metricsList.add(createErrorMetrics("PostgreSQL (Recommendation Service)", "postgresql"));
         }
         
         // Redis 메트릭
@@ -55,16 +73,16 @@ public class DatabaseMetricsService {
             metricsList.add(redisMetrics);
         } catch (Exception e) {
             log.error("Failed to get Redis metrics", e);
-            metricsList.add(createErrorMetrics("Redis", "redis"));
+            metricsList.add(createErrorMetrics("Redis (Cache)", "redis"));
         }
         
         return metricsList;
     }
     
     /**
-     * MySQL 메트릭 조회
+     * MySQL 메트릭 조회 (User Service)
      */
-    private DatabaseMetrics getMySQLMetrics() throws Exception {
+    private DatabaseMetrics getMySQLUserMetrics() throws Exception {
         try (Connection conn = DriverManager.getConnection(mysqlUrl, mysqlUsername, mysqlPassword);
              Statement stmt = conn.createStatement()) {
             
@@ -137,9 +155,88 @@ public class DatabaseMetricsService {
     }
     
     /**
-     * PostgreSQL 메트릭 조회
+     * MySQL 메트릭 조회 (Place Service)
      */
-    private DatabaseMetrics getPostgreSQLMetrics() throws Exception {
+    private DatabaseMetrics getMySQLPlaceMetrics() throws Exception {
+        String placeDbUrl = "jdbc:mysql://10.0.2.15:3306/place_service";
+        String placeDbUsername = "root";
+        String placeDbPassword = "password";
+        
+        try (Connection conn = DriverManager.getConnection(placeDbUrl, placeDbUsername, placeDbPassword);
+             Statement stmt = conn.createStatement()) {
+            
+            // 버전 조회
+            String version = "Unknown";
+            try (ResultSet rs = stmt.executeQuery("SELECT VERSION()")) {
+                if (rs.next()) {
+                    version = rs.getString(1);
+                }
+            }
+            
+            // 연결 수 조회
+            long connections = 0;
+            long maxConnections = 0;
+            try (ResultSet rs = stmt.executeQuery("SHOW STATUS LIKE 'Threads_connected'")) {
+                if (rs.next()) {
+                    connections = rs.getLong(2);
+                }
+            }
+            try (ResultSet rs = stmt.executeQuery("SHOW VARIABLES LIKE 'max_connections'")) {
+                if (rs.next()) {
+                    maxConnections = rs.getLong(2);
+                }
+            }
+            
+            // 데이터베이스 크기 조회
+            long databaseSize = 0;
+            try (ResultSet rs = stmt.executeQuery(
+                "SELECT SUM(data_length + index_length) as size " +
+                "FROM information_schema.TABLES " +
+                "WHERE table_schema = DATABASE()")) {
+                if (rs.next()) {
+                    databaseSize = rs.getLong("size");
+                }
+            }
+            
+            // 테이블 수 조회
+            long tableCount = 0;
+            try (ResultSet rs = stmt.executeQuery(
+                "SELECT COUNT(*) as count FROM information_schema.TABLES WHERE table_schema = DATABASE()")) {
+                if (rs.next()) {
+                    tableCount = rs.getLong("count");
+                }
+            }
+            
+            // Uptime 조회
+            String uptime = "Unknown";
+            try (ResultSet rs = stmt.executeQuery("SHOW STATUS LIKE 'Uptime'")) {
+                if (rs.next()) {
+                    long uptimeSeconds = rs.getLong(2);
+                    uptime = formatUptime(uptimeSeconds);
+                }
+            }
+            
+            double connectionUsage = maxConnections > 0 ? (connections * 100.0 / maxConnections) : 0;
+            
+            return DatabaseMetrics.builder()
+                .databaseName("MySQL (Place Service)")
+                .type("mysql")
+                .status("running")
+                .connections(connections)
+                .maxConnections(maxConnections)
+                .connectionUsage(connectionUsage)
+                .databaseSize(databaseSize)
+                .tableCount(tableCount)
+                .version(version)
+                .uptime(uptime)
+                .build();
+        }
+    }
+    
+    /**
+     * PostgreSQL 메트릭 조회 (Community Service)
+     */
+    private DatabaseMetrics getPostgreSQLCommunityMetrics() throws Exception {
         String postgresUrl = "jdbc:postgresql://10.0.2.15:5432/community_db";
         String postgresUsername = "community_user";
         String postgresPassword = "Community@2025!";
@@ -201,7 +298,86 @@ public class DatabaseMetricsService {
             double connectionUsage = maxConnections > 0 ? (connections * 100.0 / maxConnections) : 0;
             
             return DatabaseMetrics.builder()
-                .databaseName("PostgreSQL (Community/Place/Recommendation)")
+                .databaseName("PostgreSQL (Community Service)")
+                .type("postgresql")
+                .status("running")
+                .connections(connections)
+                .maxConnections(maxConnections)
+                .connectionUsage(connectionUsage)
+                .databaseSize(databaseSize)
+                .tableCount(tableCount)
+                .version(version)
+                .uptime(uptime)
+                .build();
+        }
+    }
+    
+    /**
+     * PostgreSQL 메트릭 조회 (Recommendation Service)
+     */
+    private DatabaseMetrics getPostgreSQLRecommendationMetrics() throws Exception {
+        String postgresUrl = "jdbc:postgresql://10.0.2.15:5432/recommendation_db";
+        String postgresUsername = "recommendation_user";
+        String postgresPassword = "Recommendation@2025!";
+        
+        try (Connection conn = DriverManager.getConnection(postgresUrl, postgresUsername, postgresPassword);
+             Statement stmt = conn.createStatement()) {
+            
+            // 버전 조회
+            String version = "Unknown";
+            try (ResultSet rs = stmt.executeQuery("SELECT version()")) {
+                if (rs.next()) {
+                    String fullVersion = rs.getString(1);
+                    // "PostgreSQL 15.3 ..." -> "15.3"
+                    version = fullVersion.split(" ")[1];
+                }
+            }
+            
+            // 연결 수 조회
+            long connections = 0;
+            long maxConnections = 0;
+            try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM pg_stat_activity")) {
+                if (rs.next()) {
+                    connections = rs.getLong(1);
+                }
+            }
+            try (ResultSet rs = stmt.executeQuery("SHOW max_connections")) {
+                if (rs.next()) {
+                    maxConnections = rs.getLong(1);
+                }
+            }
+            
+            // 데이터베이스 크기 조회
+            long databaseSize = 0;
+            try (ResultSet rs = stmt.executeQuery("SELECT pg_database_size(current_database())")) {
+                if (rs.next()) {
+                    databaseSize = rs.getLong(1);
+                }
+            }
+            
+            // 테이블 수 조회
+            long tableCount = 0;
+            try (ResultSet rs = stmt.executeQuery(
+                "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'")) {
+                if (rs.next()) {
+                    tableCount = rs.getLong(1);
+                }
+            }
+            
+            // Uptime 조회
+            String uptime = "Unknown";
+            try (ResultSet rs = stmt.executeQuery(
+                "SELECT EXTRACT(EPOCH FROM (now() - pg_postmaster_start_time()))::bigint")) {
+                if (rs.next()) {
+                    long uptimeSeconds = rs.getLong(1);
+                    uptime = formatUptime(uptimeSeconds);
+                }
+            }
+            
+            double connectionUsage = maxConnections > 0 ? (connections * 100.0 / maxConnections) : 0;
+            
+            return DatabaseMetrics.builder()
+                .databaseName("PostgreSQL (Recommendation Service)")
                 .type("postgresql")
                 .status("running")
                 .connections(connections)
