@@ -48,11 +48,13 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Redis -->
+        <!-- Redis - 제거됨 (캐싱 불필요) -->
+        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+        -->
 
         <!-- Lombok -->
         <dependency>

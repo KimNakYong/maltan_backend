@@ -5,7 +5,6 @@ import com.maltan.recommendation.entity.Recommendation;
 import com.maltan.recommendation.repository.RecommendationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +22,7 @@ public class RecommendationService {
      * 사용자 선호 지역 기반 추천
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "userRecommendations", key = "#userId")
+    // @Cacheable(value = "userRecommendations", key = "#userId") - Redis 제거로 캐싱 비활성화
     public List<RecommendationDto> getRecommendationsForUser(Long userId) {
         log.info("Getting recommendations for user: {}", userId);
         List<Recommendation> recommendations = recommendationRepository.findByUserIdOrderByScoreDesc(userId);
@@ -36,7 +35,7 @@ public class RecommendationService {
      * 지역별 추천
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "regionRecommendations", key = "#regionSi + '_' + #regionGu")
+    // @Cacheable(value = "regionRecommendations", key = "#regionSi + '_' + #regionGu") - Redis 제거로 캐싱 비활성화
     public List<RecommendationDto> getRecommendationsByRegion(String regionSi, String regionGu) {
         log.info("Getting recommendations for region: {} {}", regionSi, regionGu);
         List<Recommendation> recommendations = recommendationRepository
@@ -50,7 +49,7 @@ public class RecommendationService {
      * 장소 타입별 추천
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "typeRecommendations", key = "#placeType")
+    // @Cacheable(value = "typeRecommendations", key = "#placeType") - Redis 제거로 캐싱 비활성화
     public List<RecommendationDto> getRecommendationsByType(String placeType) {
         log.info("Getting recommendations for type: {}", placeType);
         List<Recommendation> recommendations = recommendationRepository
@@ -64,7 +63,7 @@ public class RecommendationService {
      * 인기 추천 (지역별 상위)
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "popularRecommendations", key = "#regionSi")
+    // @Cacheable(value = "popularRecommendations", key = "#regionSi") - Redis 제거로 캐싱 비활성화
     public List<RecommendationDto> getPopularRecommendations(String regionSi) {
         log.info("Getting popular recommendations for: {}", regionSi);
         List<Recommendation> recommendations = recommendationRepository.findTopByRegionSi(regionSi);
