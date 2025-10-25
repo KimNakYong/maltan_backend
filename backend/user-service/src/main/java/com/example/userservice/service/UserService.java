@@ -1,6 +1,9 @@
 package com.example.userservice.service;
 
+import com.example.userservice.dto.ChangePasswordRequest;
 import com.example.userservice.dto.PreferredRegionDto;
+import com.example.userservice.dto.PreferredRegionsResponse;
+import com.example.userservice.dto.UpdateProfileRequest;
 import com.example.userservice.dto.UserRegistrationRequest;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.entity.User;
@@ -181,6 +184,61 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
         
         return user;
+    }
+    
+    /**
+     * 현재 사용자의 선호 지역 조회 (이메일 기반)
+     */
+    public PreferredRegionsResponse getMyPreferredRegions(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+        
+        UserResponse userResponse = new UserResponse(user);
+        return new PreferredRegionsResponse(userResponse.getPreferredRegions());
+    }
+    
+    /**
+     * 현재 사용자 프로필 업데이트
+     */
+    public UserResponse updateMyProfile(String email, UpdateProfileRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+        
+        // 이름 업데이트
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            user.setName(request.getName());
+        }
+        
+        // 전화번호 업데이트
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+        
+        // 선호 지역 업데이트
+        if (request.getPreferredRegions() != null && !request.getPreferredRegions().isEmpty()) {
+            String preferredRegionsJson = convertPreferredRegionsToJson(request.getPreferredRegions());
+            user.setPreferredRegionsJson(preferredRegionsJson);
+        }
+        
+        User updatedUser = userRepository.save(user);
+        return new UserResponse(updatedUser);
+    }
+    
+    /**
+     * 현재 사용자 비밀번호 변경
+     */
+    public void changeMyPassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+        
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다");
+        }
+        
+        // 새 비밀번호로 변경
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
     
     /**

@@ -3,6 +3,12 @@ server:
   servlet:
     context-path: /api
 
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET:maltan-secret-key-for-jwt-token-generation-minimum-256-bits-required}
+  expiration: ${JWT_EXPIRATION:86400000} # 24시간 (밀리초)
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7일 (밀리초)
+
 spring:
   application:
     name: user-service

@@ -33,6 +33,8 @@ public class SecurityConfig {
                 .requestMatchers("/user/auth/check-username/**", "/user/auth/check-email/**").permitAll()
                 .requestMatchers("/user/auth/username/**", "/user/auth/email/**").permitAll()
                 .requestMatchers("/user/auth/{id}").permitAll()
+                .requestMatchers("/user/auth/me/**").permitAll() // 현재 사용자 관련 엔드포인트 허용
+                .requestMatchers("/user/auth/me").permitAll() // 현재 사용자 정보 조회/업데이트 허용
                 .requestMatchers("/test/**").permitAll()
                 .anyRequest().authenticated()
             )
