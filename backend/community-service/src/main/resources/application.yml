@@ -64,14 +64,10 @@ jwt:
   secret: ${JWT_SECRET:maltan-community-service-secret-key-change-in-production-please}
   expiration: 86400000  # 24시간
 
-# Feign Client Configuration (User Service 호출용)
-feign:
-  client:
-    config:
-      user-service:
-        url: ${USER_SERVICE_URL:http://localhost:8081}
-        connect-timeout: 5000
-        read-timeout: 5000
+# User Service Configuration
+user:
+  service:
+    url: ${USER_SERVICE_URL:http://localhost:8081}
 
 # Logging Configuration
 logging:

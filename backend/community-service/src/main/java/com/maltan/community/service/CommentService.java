@@ -1,5 +1,6 @@
 package com.maltan.community.service;
 
+import com.maltan.community.client.UserServiceClient;
 import com.maltan.community.dto.CommentDto;
 import com.maltan.community.dto.request.CreateCommentRequest;
 import com.maltan.community.dto.request.UpdateCommentRequest;
@@ -25,6 +26,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final CommentVoteRepository commentVoteRepository;
+    private final UserServiceClient userServiceClient;
     
     /**
      * 게시글의 댓글 목록 조회
@@ -135,12 +137,15 @@ public class CommentService {
                 });
         }
         
+        // User Service에서 사용자 이름 조회
+        String userName = userServiceClient.getUserName(comment.getUserId());
+        
         return CommentDto.builder()
             .id(comment.getId())
             .postId(comment.getPost().getId())
             .userId(comment.getUserId())
-            .userName(comment.getUserName())  // Comment 엔티티에서 userName 가져오기
-            .userNickname(comment.getUserName())  // 호환성을 위해 동일한 값 설정
+            .userName(userName)  // User Service에서 조회한 사용자 이름
+            .userNickname(userName)  // 호환성을 위해 동일한 값 설정
             .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
             .content(comment.getContent())
             .likeCount(comment.getLikeCount())

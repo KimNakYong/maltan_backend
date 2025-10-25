@@ -5,6 +5,7 @@ import com.maltan.community.dto.request.CreatePostRequest;
 import com.maltan.community.dto.request.UpdatePostRequest;
 import com.maltan.community.dto.response.PostListResponse;
 import com.maltan.community.dto.response.PostResponse;
+import com.maltan.community.scheduler.PopularPostScheduler;
 import com.maltan.community.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     
     private final PostService postService;
+    private final PopularPostScheduler popularPostScheduler;
     
     /**
      * 게시글 목록 조회
