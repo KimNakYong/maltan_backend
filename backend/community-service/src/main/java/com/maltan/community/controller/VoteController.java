@@ -21,8 +21,13 @@ public class VoteController {
     public ResponseEntity<VoteResponse> votePost(
             @PathVariable Long postId,
             @Valid @RequestBody VoteRequest request,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute
     ) {
+        // 임시: 인증 시스템 구현 전까지 요청 본문에서 userId 사용
+        Long userId = userIdFromAttribute != null ? userIdFromAttribute : request.getUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
         VoteResponse response = voteService.votePost(postId, request, userId);
         return ResponseEntity.ok(response);
     }
@@ -30,9 +35,15 @@ public class VoteController {
     @DeleteMapping("/posts/{postId}/vote")
     public ResponseEntity<VoteResponse> cancelPostVote(
             @PathVariable Long postId,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute,
+            @RequestParam(required = false) Long userId
     ) {
-        VoteResponse response = voteService.cancelPostVote(postId, userId);
+        // 임시: 인증 시스템 구현 전까지 쿼리 파라미터에서 userId 사용
+        Long finalUserId = userIdFromAttribute != null ? userIdFromAttribute : userId;
+        if (finalUserId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
+        VoteResponse response = voteService.cancelPostVote(postId, finalUserId);
         return ResponseEntity.ok(response);
     }
     
@@ -42,8 +53,13 @@ public class VoteController {
     public ResponseEntity<VoteResponse> voteComment(
             @PathVariable Long commentId,
             @Valid @RequestBody VoteRequest request,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute
     ) {
+        // 임시: 인증 시스템 구현 전까지 요청 본문에서 userId 사용
+        Long userId = userIdFromAttribute != null ? userIdFromAttribute : request.getUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
         VoteResponse response = voteService.voteComment(commentId, request, userId);
         return ResponseEntity.ok(response);
     }
@@ -51,9 +67,15 @@ public class VoteController {
     @DeleteMapping("/comments/{commentId}/vote")
     public ResponseEntity<VoteResponse> cancelCommentVote(
             @PathVariable Long commentId,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute,
+            @RequestParam(required = false) Long userId
     ) {
-        VoteResponse response = voteService.cancelCommentVote(commentId, userId);
+        // 임시: 인증 시스템 구현 전까지 쿼리 파라미터에서 userId 사용
+        Long finalUserId = userIdFromAttribute != null ? userIdFromAttribute : userId;
+        if (finalUserId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
+        VoteResponse response = voteService.cancelCommentVote(commentId, finalUserId);
         return ResponseEntity.ok(response);
     }
 }

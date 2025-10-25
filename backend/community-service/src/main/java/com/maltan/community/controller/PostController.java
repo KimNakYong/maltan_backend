@@ -70,8 +70,13 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponse> createPost(
             @Valid @RequestBody CreatePostRequest request,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute
     ) {
+        // 임시: 인증 시스템 구현 전까지 요청 본문에서 userId 사용
+        Long userId = userIdFromAttribute != null ? userIdFromAttribute : request.getUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
         PostDto post = postService.createPost(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(PostResponse.builder().post(post).build());

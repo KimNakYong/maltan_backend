@@ -54,5 +54,8 @@ public class CreatePostRequest {
     // 이미지 URL 목록
     @Size(max = 5, message = "이미지는 최대 5개까지 업로드 가능합니다.")
     private List<String> images;
+    
+    // 임시: 인증 시스템 구현 전까지 요청 본문에서 받음
+    private Long userId;
 }
 

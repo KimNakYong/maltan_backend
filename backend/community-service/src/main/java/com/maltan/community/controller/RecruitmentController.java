@@ -20,9 +20,15 @@ public class RecruitmentController {
     @PostMapping("/{postId}/participate")
     public ResponseEntity<ParticipateResponse> toggleParticipation(
             @PathVariable Long postId,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute,
+            @RequestParam(required = false) Long userId
     ) {
-        ParticipateResponse response = recruitmentService.toggleParticipation(postId, userId);
+        // 임시: 인증 시스템 구현 전까지 쿼리 파라미터에서 userId 사용
+        Long finalUserId = userIdFromAttribute != null ? userIdFromAttribute : userId;
+        if (finalUserId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
+        ParticipateResponse response = recruitmentService.toggleParticipation(postId, finalUserId);
         return ResponseEntity.ok(response);
     }
     
