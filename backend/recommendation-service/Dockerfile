@@ -8,11 +8,11 @@ WORKDIR /app
 COPY target/recommendation-service-1.0.0.jar app.jar
 
 # 포트 노출
-EXPOSE 8083
+EXPOSE 8084
 
 # 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8083/actuator/health || exit 1
+  CMD curl -f http://localhost:8084/actuator/health || exit 1
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
