@@ -44,8 +44,6 @@ jobs:
             -e DB_NAME=recommendation_db \
             -e DB_USERNAME=recommendation_user \
             -e DB_PASSWORD=Recommendation2025 \
-            -e REDIS_HOST=10.0.2.15 \
-            -e REDIS_PORT=6379 \
             -e SERVER_PORT=8084 \
             recommendation-service:latest
       

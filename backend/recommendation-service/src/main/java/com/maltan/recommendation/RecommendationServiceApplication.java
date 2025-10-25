@@ -2,12 +2,11 @@ package com.maltan.recommendation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableCaching
+// @EnableCaching - Redis 제거로 캐싱 비활성화
 public class RecommendationServiceApplication {
     
     public static void main(String[] args) {
