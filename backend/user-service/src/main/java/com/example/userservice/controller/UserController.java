@@ -3,6 +3,7 @@ package com.example.userservice.controller;
 import com.example.userservice.dto.ApiResponse;
 import com.example.userservice.dto.AuthResponse;
 import com.example.userservice.dto.ChangePasswordRequest;
+import com.example.userservice.dto.LoginRequest;
 import com.example.userservice.dto.PreferredRegionsResponse;
 import com.example.userservice.dto.UpdateProfileRequest;
 import com.example.userservice.dto.UserRegistrationRequest;
@@ -29,6 +30,33 @@ public class UserController {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    /**
+     * 로그인 (JWT 토큰 발급)
+     */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        try {
+            UserResponse userResponse = userService.login(request);
+            
+            // JWT 토큰 생성
+            String accessToken = jwtUtil.generateAccessToken(
+                userResponse.getEmail(), 
+                userResponse.getId(), 
+                userResponse.getRole().name()
+            );
+            String refreshToken = jwtUtil.generateRefreshToken(userResponse.getEmail());
+            
+            // AuthResponse 생성
+            AuthResponse authResponse = new AuthResponse(accessToken, refreshToken, userResponse);
+            
+            ApiResponse<AuthResponse> response = ApiResponse.success("로그인에 성공했습니다.", authResponse);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            ApiResponse<AuthResponse> response = ApiResponse.error(e.getMessage(), 401);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
     
     /**
      * 사용자 등록 (JWT 토큰 발급)

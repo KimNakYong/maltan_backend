@@ -1,6 +1,7 @@
 package com.example.userservice.service;
 
 import com.example.userservice.dto.ChangePasswordRequest;
+import com.example.userservice.dto.LoginRequest;
 import com.example.userservice.dto.PreferredRegionDto;
 import com.example.userservice.dto.PreferredRegionsResponse;
 import com.example.userservice.dto.UpdateProfileRequest;
@@ -184,6 +185,26 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
         
         return user;
+    }
+    
+    /**
+     * 로그인 (이메일/비밀번호 검증)
+     */
+    public UserResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("이메일 또는 비밀번호가 일치하지 않습니다"));
+        
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("이메일 또는 비밀번호가 일치하지 않습니다");
+        }
+        
+        // 계정 활성화 확인
+        if (!user.isEnabled()) {
+            throw new RuntimeException("비활성화된 계정입니다");
+        }
+        
+        return new UserResponse(user);
     }
     
     /**

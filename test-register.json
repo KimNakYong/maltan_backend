@@ -1,0 +1,22 @@
+{
+  "email": "a@a.a",
+  "password": "12341234",
+  "name": "테스트 사용자",
+  "preferredRegions": [
+    {
+      "city": "11",
+      "cityName": "서울특별시",
+      "district": "11680",
+      "districtName": "강남구",
+      "priority": 1
+    },
+    {
+      "city": "11",
+      "cityName": "서울특별시",
+      "district": "11740",
+      "districtName": "강동구",
+      "priority": 2
+    }
+  ]
+}
+
