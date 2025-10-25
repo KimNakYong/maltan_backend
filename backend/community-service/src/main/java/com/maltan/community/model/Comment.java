@@ -33,6 +33,9 @@ public class Comment {
     @Column(name = "user_id", nullable = false)
     private Long userId;
     
+    @Column(name = "user_name")
+    private String userName;  // User Service에서 조회한 사용자 이름
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
