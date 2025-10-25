@@ -3,7 +3,6 @@ package com.example.userservice.service;
 import com.example.userservice.dto.PreferredRegionDto;
 import com.example.userservice.dto.UserRegistrationRequest;
 import com.example.userservice.dto.UserResponse;
-import com.example.userservice.entity.PreferredRegion;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
