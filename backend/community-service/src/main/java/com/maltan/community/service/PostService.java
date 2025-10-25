@@ -1,5 +1,6 @@
 package com.maltan.community.service;
 
+import com.maltan.community.client.UserServiceClient;
 import com.maltan.community.dto.PostDto;
 import com.maltan.community.dto.request.CreatePostRequest;
 import com.maltan.community.dto.request.UpdatePostRequest;
@@ -28,6 +29,7 @@ public class PostService {
     private final PostImageRepository postImageRepository;
     private final PostVoteRepository postVoteRepository;
     private final RecruitmentParticipantRepository participantRepository;
+    private final UserServiceClient userServiceClient;
     
     /**
      * 게시글 목록 조회
@@ -214,8 +216,8 @@ public class PostService {
             );
         }
         
-        // TODO: User Service에서 사용자 이름 조회
-        String userName = "사용자" + post.getUserId();  // 임시값
+        // User Service에서 사용자 이름 조회
+        String userName = userServiceClient.getUserName(post.getUserId());
         
         return PostDto.builder()
             .id(post.getId())
