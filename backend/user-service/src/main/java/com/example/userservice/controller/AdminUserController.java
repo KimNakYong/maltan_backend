@@ -1,9 +1,11 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.ApiResponse;
+import com.example.userservice.dto.SystemMetrics;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
+import com.example.userservice.service.SystemMetricsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public class AdminUserController {
     
     private final UserRepository userRepository;
+    private final SystemMetricsService systemMetricsService;
     
     /**
      * 사용자 목록 조회 (페이징)
@@ -184,6 +187,20 @@ public class AdminUserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("통계 조회 실패: " + e.getMessage(), 500));
+        }
+    }
+    
+    /**
+     * 시스템 메트릭 조회
+     */
+    @GetMapping("/system/metrics")
+    public ResponseEntity<ApiResponse<SystemMetrics>> getSystemMetrics() {
+        try {
+            SystemMetrics metrics = systemMetricsService.getSystemMetrics();
+            return ResponseEntity.ok(ApiResponse.success(metrics));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("시스템 메트릭 조회 실패: " + e.getMessage(), 500));
         }
     }
 }
