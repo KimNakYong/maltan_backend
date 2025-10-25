@@ -158,9 +158,9 @@ public class DatabaseMetricsService {
      * MySQL 메트릭 조회 (Place Service)
      */
     private DatabaseMetrics getMySQLPlaceMetrics() throws Exception {
-        String placeDbUrl = "jdbc:mysql://10.0.2.15:3306/place_service";
+        String placeDbUrl = "jdbc:mysql://10.0.2.15:3306/placedb";
         String placeDbUsername = "root";
-        String placeDbPassword = "password";
+        String placeDbPassword = "1234";
         
         try (Connection conn = DriverManager.getConnection(placeDbUrl, placeDbUsername, placeDbPassword);
              Statement stmt = conn.createStatement()) {
@@ -318,7 +318,7 @@ public class DatabaseMetricsService {
     private DatabaseMetrics getPostgreSQLRecommendationMetrics() throws Exception {
         String postgresUrl = "jdbc:postgresql://10.0.2.15:5432/recommendation_db";
         String postgresUsername = "recommendation_user";
-        String postgresPassword = "Recommendation@2025!";
+        String postgresPassword = "Recommendation2025";
         
         try (Connection conn = DriverManager.getConnection(postgresUrl, postgresUsername, postgresPassword);
              Statement stmt = conn.createStatement()) {
