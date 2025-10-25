@@ -1,7 +1,12 @@
 # 멀티 스테이지 빌드를 사용한 Dockerfile
 
-# 1단계: 빌드 스테이지
-FROM maven:3.8.6-openjdk-17 AS builder
+# 1단계: 빌드 스테이지 - Amazon Corretto 기반 (가장 안정적)
+FROM amazoncorretto:17 AS builder
+
+# Maven 설치
+RUN yum update -y && \
+    yum install -y maven && \
+    yum clean all
 
 # 작업 디렉토리 설정
 WORKDIR /app
