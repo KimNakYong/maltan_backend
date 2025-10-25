@@ -16,5 +16,7 @@ public class CreateCommentRequest {
     private String content;
     
     private Long parentCommentId;  // 대댓글인 경우
+    
+    private Long userId;  // 임시: 인증 시스템 구현 전까지 요청 본문에서 받음
 }
 
