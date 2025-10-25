@@ -44,6 +44,13 @@ public class CreatePostRequest {
     @Size(max = 200, message = "활동 장소는 200자를 초과할 수 없습니다.")
     private String eventLocation;
     
+    // 위치 정보 (Google Maps) - 선택사항
+    private Double latitude;
+    private Double longitude;
+    
+    @Size(max = 500, message = "주소는 500자를 초과할 수 없습니다.")
+    private String address;
+    
     // 이미지 URL 목록
     @Size(max = 5, message = "이미지는 최대 5개까지 업로드 가능합니다.")
     private List<String> images;

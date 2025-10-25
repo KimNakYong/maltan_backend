@@ -34,6 +34,11 @@ public class PostDto {
     private LocalDateTime eventDate;
     private String eventLocation;
     
+    // 위치 정보 (Google Maps)
+    private Double latitude;
+    private Double longitude;
+    private String address;
+    
     private Integer viewCount;
     private Integer likeCount;
     private Integer dislikeCount;

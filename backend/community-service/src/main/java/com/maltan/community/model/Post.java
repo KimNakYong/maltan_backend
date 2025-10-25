@@ -71,6 +71,16 @@ public class Post {
     @Column(name = "event_location", length = 200)
     private String eventLocation;
     
+    // 위치 정보 (Google Maps)
+    @Column(name = "latitude")
+    private Double latitude;
+    
+    @Column(name = "longitude")
+    private Double longitude;
+    
+    @Column(name = "address", length = 500)
+    private String address;
+    
     // 통계
     @Column(name = "view_count")
     @Builder.Default

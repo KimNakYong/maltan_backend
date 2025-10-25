@@ -93,6 +93,9 @@ public class PostService {
             .recruitmentDeadline(request.getRecruitmentDeadline())
             .eventDate(request.getEventDate())
             .eventLocation(request.getEventLocation())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .address(request.getAddress())
             .build();
         
         Post savedPost = postRepository.save(post);
@@ -230,6 +233,9 @@ public class PostService {
             .recruitmentDeadline(post.getRecruitmentDeadline())
             .eventDate(post.getEventDate())
             .eventLocation(post.getEventLocation())
+            .latitude(post.getLatitude())
+            .longitude(post.getLongitude())
+            .address(post.getAddress())
             .viewCount(post.getViewCount())
             .likeCount(post.getLikeCount())
             .dislikeCount(post.getDislikeCount())
