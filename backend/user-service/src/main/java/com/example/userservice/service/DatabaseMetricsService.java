@@ -67,13 +67,13 @@ public class DatabaseMetricsService {
             metricsList.add(createErrorMetrics("PostgreSQL (Recommendation Service)", "postgresql"));
         }
         
-        // Redis 메트릭
+        // Redis 메트릭 (선택적 - 실행 중이 아니면 스킵)
         try {
             DatabaseMetrics redisMetrics = getRedisMetrics();
             metricsList.add(redisMetrics);
         } catch (Exception e) {
-            log.error("Failed to get Redis metrics", e);
-            metricsList.add(createErrorMetrics("Redis (Cache)", "redis"));
+            log.warn("Redis is not running or not accessible, skipping metrics: {}", e.getMessage());
+            // Redis가 없어도 에러로 표시하지 않음 (선택적 컴포넌트)
         }
         
         return metricsList;
