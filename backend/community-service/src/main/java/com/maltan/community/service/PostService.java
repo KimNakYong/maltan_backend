@@ -41,11 +41,12 @@ public class PostService {
             String regionGu,
             String regionDong,
             Boolean isRecruitment,
+            String search,
             Pageable pageable,
             Long currentUserId
     ) {
         Page<Post> postsPage = postRepository.findByFilters(
-            category, regionSi, regionGu, regionDong, isRecruitment, pageable
+            category, regionSi, regionGu, regionDong, isRecruitment, search, pageable
         );
         
         List<PostDto> postDtos = postsPage.getContent().stream()

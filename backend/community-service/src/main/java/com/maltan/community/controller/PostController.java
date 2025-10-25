@@ -34,6 +34,7 @@ public class PostController {
             @RequestParam(required = false) String regionGu,
             @RequestParam(required = false) String regionDong,
             @RequestParam(required = false) Boolean isRecruitment,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
@@ -48,7 +49,7 @@ public class PostController {
         Pageable pageable = PageRequest.of(page, size, sortOrder);
         
         PostListResponse response = postService.getPosts(
-            category, regionSi, regionGu, regionDong, isRecruitment, pageable, userId
+            category, regionSi, regionGu, regionDong, isRecruitment, search, pageable, userId
         );
         
         return ResponseEntity.ok(response);

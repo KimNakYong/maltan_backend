@@ -57,13 +57,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         @Param("now") LocalDateTime now
     );
     
-    // 복합 검색 (카테고리 + 지역) - 인기 게시글 우선 정렬
+    // 복합 검색 (카테고리 + 지역 + 검색어) - 인기 게시글 우선 정렬
     @Query("SELECT p FROM Post p WHERE p.isDeleted = false " +
            "AND (:category IS NULL OR p.category = :category) " +
            "AND (:regionSi IS NULL OR p.regionSi = :regionSi) " +
            "AND (:regionGu IS NULL OR p.regionGu = :regionGu) " +
            "AND (:regionDong IS NULL OR p.regionDong = :regionDong) " +
            "AND (:isRecruitment IS NULL OR p.isRecruitment = :isRecruitment) " +
+           "AND (:search IS NULL OR p.title LIKE %:search% OR p.content LIKE %:search%) " +
            "ORDER BY " +
            "CASE WHEN p.isPinned = true AND p.pinnedUntil > CURRENT_TIMESTAMP THEN 0 ELSE 1 END, " +
            "p.createdAt DESC")
@@ -73,6 +74,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         @Param("regionGu") String regionGu,
         @Param("regionDong") String regionDong,
         @Param("isRecruitment") Boolean isRecruitment,
+        @Param("search") String search,
         Pageable pageable
     );
     
