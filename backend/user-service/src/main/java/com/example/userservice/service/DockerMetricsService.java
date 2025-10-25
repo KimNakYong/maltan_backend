@@ -59,18 +59,36 @@ public class DockerMetricsService {
             "--no-stream", 
             "--format", "{{.CPUPerc}},{{.MemPerc}},{{.MemUsage}}"
         );
+        pb.redirectErrorStream(true); // 에러 스트림을 표준 출력으로 병합
         
         Process process = pb.start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line = reader.readLine();
-        process.waitFor();
+        BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
         
-        if (line == null || line.isEmpty()) {
+        String line = reader.readLine();
+        int exitCode = process.waitFor();
+        
+        // 에러 로그 출력
+        if (exitCode != 0 || line == null || line.isEmpty()) {
+            StringBuilder errorOutput = new StringBuilder();
+            String errorLine;
+            while ((errorLine = errorReader.readLine()) != null) {
+                errorOutput.append(errorLine).append("\n");
+            }
+            log.error("Docker stats failed for {}: exit code {}, output: {}, error: {}", 
+                serviceName, exitCode, line, errorOutput.toString());
             throw new RuntimeException("No stats available for " + serviceName);
         }
         
+        log.debug("Docker stats for {}: {}", serviceName, line);
+        
         // 결과 파싱: "5.23%,12.45%,256MiB / 2GiB"
         String[] parts = line.split(",");
+        
+        if (parts.length < 3) {
+            log.error("Invalid docker stats format for {}: {}", serviceName, line);
+            throw new RuntimeException("Invalid stats format for " + serviceName);
+        }
         
         double cpuUsage = parseCpuUsage(parts[0]);
         double memoryUsage = parseMemoryUsage(parts[1]);
