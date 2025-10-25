@@ -122,15 +122,15 @@ public class TestController {
         data.put("service", "User Service");
         data.put("version", "1.0.0");
         data.put("endpoints", List.of(
-            "POST /api/users/register - 회원가입",
-            "GET /api/users/{id} - 사용자 조회",
-            "GET /api/users/username/{username} - 사용자명으로 조회",
-            "GET /api/users/email/{email} - 이메일로 조회",
-            "GET /api/users/check-username/{username} - 사용자명 중복 확인",
-            "GET /api/users/check-email/{email} - 이메일 중복 확인",
-            "PUT /api/users/{id} - 사용자 정보 수정",
-            "DELETE /api/users/{id} - 사용자 삭제",
-            "GET /api/users/health - 헬스 체크"
+            "POST /api/user/auth/register - 회원가입",
+            "GET /api/user/auth/{id} - 사용자 조회",
+            "GET /api/user/auth/username/{username} - 사용자명으로 조회",
+            "GET /api/user/auth/email/{email} - 이메일로 조회",
+            "GET /api/user/auth/check-username/{username} - 사용자명 중복 확인",
+            "GET /api/user/auth/check-email/{email} - 이메일 중복 확인",
+            "PUT /api/user/auth/{id} - 사용자 정보 수정",
+            "DELETE /api/user/auth/{id} - 사용자 삭제",
+            "GET /api/user/auth/health - 헬스 체크"
         ));
         data.put("cors", "ngrok URL 허용됨");
         data.put("database", "MySQL");
