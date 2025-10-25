@@ -1,0 +1,52 @@
+# 우분투 MySQL userdb 연결을 위한 Spring Boot 설정
+# src/main/resources/application.yml
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: user-service
+  
+  # MySQL 데이터베이스 연결 설정
+  datasource:
+    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: root
+    password: your_mysql_password  # 실제 MySQL root 비밀번호로 변경하세요
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update  # 테이블 자동 생성/업데이트
+    show-sql: true      # SQL 쿼리 로그 출력
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+  
+  # Spring Security 설정
+  security:
+    user:
+      name: admin
+      password: admin123
+
+# 로깅 설정
+logging:
+  level:
+    com.example.userservice: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
