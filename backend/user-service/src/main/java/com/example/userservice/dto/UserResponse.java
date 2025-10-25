@@ -1,9 +1,11 @@
 package com.example.userservice.dto;
 
 import com.example.userservice.entity.User;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UserResponse {
     
@@ -27,19 +29,42 @@ public class UserResponse {
         this.email = user.getEmail();
         this.name = user.getName();
         this.phone = user.getPhoneNumber();
-        this.preferredRegions = user.getPreferredRegions().stream()
-                .map(region -> new PreferredRegionDto(
-                    region.getCity(),
-                    region.getCityName(),
-                    region.getDistrict(),
-                    region.getDistrictName(),
-                    region.getPriority()
-                ))
-                .collect(Collectors.toList());
+        
+        // JSON에서 선호지역 파싱
+        this.preferredRegions = parsePreferredRegionsFromJson(user.getPreferredRegionsJson());
+        
         this.role = user.getRole();
         this.isEnabled = user.isEnabled();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
+    }
+    
+    private List<PreferredRegionDto> parsePreferredRegionsFromJson(String json) {
+        if (json == null || json.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(json);
+            List<PreferredRegionDto> regions = new ArrayList<>();
+            
+            if (jsonNode.isArray()) {
+                for (JsonNode regionNode : jsonNode) {
+                    PreferredRegionDto region = new PreferredRegionDto(
+                        regionNode.get("city").asText(),
+                        regionNode.get("cityName").asText(),
+                        regionNode.get("district").asText(),
+                        regionNode.get("districtName").asText(),
+                        regionNode.get("priority").asInt()
+                    );
+                    regions.add(region);
+                }
+            }
+            return regions;
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
     
     // Getters and Setters

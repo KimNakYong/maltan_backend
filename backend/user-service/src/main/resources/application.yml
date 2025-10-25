@@ -8,9 +8,9 @@ spring:
     name: user-service
   
   datasource:
-    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
-    password: password
+    password: 
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   jpa:

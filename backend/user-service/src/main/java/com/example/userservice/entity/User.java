@@ -58,8 +58,8 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<PreferredRegion> preferredRegions = new ArrayList<>();
+    @Column(name = "preferred_regions", columnDefinition = "JSON")
+    private String preferredRegionsJson;
     
     // Constructors
     public User() {
@@ -192,22 +192,12 @@ public class User implements UserDetails {
         this.updatedAt = updatedAt;
     }
     
-    public List<PreferredRegion> getPreferredRegions() {
-        return preferredRegions;
+    public String getPreferredRegionsJson() {
+        return preferredRegionsJson;
     }
-    
-    public void setPreferredRegions(List<PreferredRegion> preferredRegions) {
-        this.preferredRegions = preferredRegions;
-    }
-    
-    public void addPreferredRegion(PreferredRegion preferredRegion) {
-        preferredRegions.add(preferredRegion);
-        preferredRegion.setUser(this);
-    }
-    
-    public void removePreferredRegion(PreferredRegion preferredRegion) {
-        preferredRegions.remove(preferredRegion);
-        preferredRegion.setUser(null);
+
+    public void setPreferredRegionsJson(String preferredRegionsJson) {
+        this.preferredRegionsJson = preferredRegionsJson;
     }
     
     // Role enum

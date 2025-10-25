@@ -6,6 +6,7 @@ import com.example.userservice.dto.UserResponse;
 import com.example.userservice.entity.PreferredRegion;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -50,19 +51,11 @@ public class UserService implements UserDetailsService {
         user.setRole(User.Role.USER);
         user.setEnabled(true);
         
-        // 선호 지역 추가
-        if (request.getPreferredRegions() != null) {
-            for (PreferredRegionDto regionDto : request.getPreferredRegions()) {
-                PreferredRegion region = new PreferredRegion(
-                    regionDto.getCity(),
-                    regionDto.getCityName(),
-                    regionDto.getDistrict(),
-                    regionDto.getDistrictName(),
-                    regionDto.getPriority()
-                );
-                user.addPreferredRegion(region);
-            }
-        }
+    // 선호 지역을 JSON으로 변환하여 저장
+    if (request.getPreferredRegions() != null && !request.getPreferredRegions().isEmpty()) {
+        String preferredRegionsJson = convertPreferredRegionsToJson(request.getPreferredRegions());
+        user.setPreferredRegionsJson(preferredRegionsJson);
+    }
         
         // 사용자 저장
         User savedUser = userRepository.save(user);
@@ -183,5 +176,17 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
         
         return user;
+    }
+    
+    /**
+     * 선호지역 리스트를 JSON 문자열로 변환
+     */
+    private String convertPreferredRegionsToJson(List<PreferredRegionDto> preferredRegions) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(preferredRegions);
+        } catch (Exception e) {
+            throw new RuntimeException("선호지역 JSON 변환 실패", e);
+        }
     }
 }

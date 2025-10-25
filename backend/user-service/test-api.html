@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Service API Test</title>
+</head>
+<body>
+    <h1>User Service API 테스트</h1>
+    
+    <div>
+        <h2>1. 헬스 체크</h2>
+        <button onclick="testHealth()">헬스 체크</button>
+        <div id="health-result"></div>
+    </div>
+    
+    <div>
+        <h2>2. 회원가입 테스트</h2>
+        <button onclick="testRegister()">회원가입 테스트</button>
+        <div id="register-result"></div>
+    </div>
+    
+    <div>
+        <h2>3. 사용자 조회 테스트</h2>
+        <button onclick="testGetUser()">사용자 조회</button>
+        <div id="getuser-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8081/api';
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/health`);
+                const data = await response.json();
+                document.getElementById('health-result').innerHTML = 
+                    `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('health-result').innerHTML = 
+                    `<p style="color: red;">에러: ${error.message}</p>`;
+            }
+        }
+        
+        async function testRegister() {
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                username: "테스트사용자",
+                phone: "010-1234-5678",
+                preferredRegions: [
+                    {
+                        city: "seoul",
+                        cityName: "서울특별시",
+                        district: "gangnam",
+                        districtName: "강남구",
+                        priority: 1
+                    }
+                ]
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                document.getElementById('register-result').innerHTML = 
+                    `<pre>Status: ${response.status}\n${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('register-result').innerHTML = 
+                    `<p style="color: red;">에러: ${error.message}</p>`;
+            }
+        }
+        
+        async function testGetUser() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/1`);
+                const data = await response.json();
+                document.getElementById('getuser-result').innerHTML = 
+                    `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('getuser-result').innerHTML = 
+                    `<p style="color: red;">에러: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

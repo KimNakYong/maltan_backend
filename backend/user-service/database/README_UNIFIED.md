@@ -1,7 +1,7 @@
-# MySQL 데이터베이스 설정 가이드
+# 통합 사용자 데이터베이스 설정 가이드
 
 ## 📋 개요
-회원가입 시스템을 위한 MySQL 데이터베이스 `userdb` 설정 가이드입니다.
+사용자 정보와 선호 지역을 하나의 테이블에 JSON 형태로 저장하는 통합 데이터베이스 설정 가이드입니다.
 
 ## 🗄️ 데이터베이스 구조
 
@@ -9,9 +9,9 @@
 - **문자셋**: utf8mb4
 - **콜레이션**: utf8mb4_unicode_ci
 
-### 2. 테이블 구조
+### 2. 통합 테이블 구조
 
-#### `users` 테이블 (사용자 정보)
+#### `users` 테이블 (통합 사용자 정보)
 | 컬럼명 | 타입 | 제약조건 | 설명 |
 |--------|------|----------|------|
 | id | BIGINT | PRIMARY KEY, AUTO_INCREMENT | 사용자 ID |
@@ -20,22 +20,33 @@
 | password | VARCHAR(255) | NOT NULL | 암호화된 비밀번호 |
 | name | VARCHAR(100) | NOT NULL | 실명 |
 | phone_number | VARCHAR(20) | NULL | 전화번호 |
+| **preferred_regions** | **JSON** | **NULL** | **선호지역 정보 (JSON 배열)** |
 | role | ENUM('USER','ADMIN') | DEFAULT 'USER' | 사용자 역할 |
 | is_enabled | BOOLEAN | DEFAULT TRUE | 계정 활성화 상태 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 생성일시 |
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP ON UPDATE | 수정일시 |
 
-#### `preferred_regions` 테이블 (선호 지역)
-| 컬럼명 | 타입 | 제약조건 | 설명 |
-|--------|------|----------|------|
-| id | BIGINT | PRIMARY KEY, AUTO_INCREMENT | 지역 ID |
-| user_id | BIGINT | FOREIGN KEY, NOT NULL | 사용자 ID |
-| city | VARCHAR(50) | NOT NULL | 도시 코드 |
-| city_name | VARCHAR(100) | NOT NULL | 도시명 |
-| district | VARCHAR(50) | NOT NULL | 구/군 코드 |
-| district_name | VARCHAR(100) | NOT NULL | 구/군명 |
-| priority | INT | CHECK (1-3), NOT NULL | 우선순위 |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 생성일시 |
+### 3. JSON 구조 예시
+
+#### 선호지역 JSON 형태:
+```json
+[
+  {
+    "city": "seoul",
+    "cityName": "서울특별시",
+    "district": "gangnam",
+    "districtName": "강남구",
+    "priority": 1
+  },
+  {
+    "city": "seoul",
+    "cityName": "서울특별시",
+    "district": "mapo",
+    "districtName": "마포구",
+    "priority": 2
+  }
+]
+```
 
 ## 🚀 설정 방법
 
@@ -44,8 +55,8 @@
 # 데이터베이스 디렉토리로 이동
 cd database
 
-# 자동 설정 스크립트 실행
-setup_mysql.bat
+# 통합 데이터베이스 자동 설정
+setup_unified_mysql.bat
 ```
 
 ### 방법 2: 수동 설정
@@ -69,10 +80,10 @@ mysql -u root -p
 CREATE DATABASE userdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-#### 4. 테이블 생성
+#### 4. 통합 테이블 생성
 ```bash
 # SQL 스크립트 실행
-mysql -u root -p userdb < create_userdb.sql
+mysql -u root -p userdb < create_unified_userdb.sql
 ```
 
 ## 🔧 Spring Boot 설정
@@ -102,9 +113,20 @@ spring:
 - **관리자**: admin@example.com / admin
 - **테스트 사용자**: test@example.com / test
 
-### 선호 지역 데이터
-- 관리자: 서울 강남구(1순위), 서울 마포구(2순위)
-- 테스트 사용자: 서울 강남구(1순위), 부산 해운대구(2순위)
+### 선호 지역 JSON 데이터
+```json
+// 관리자 선호지역
+[
+  {"city": "seoul", "cityName": "서울특별시", "district": "gangnam", "districtName": "강남구", "priority": 1},
+  {"city": "seoul", "cityName": "서울특별시", "district": "mapo", "districtName": "마포구", "priority": 2}
+]
+
+// 테스트 사용자 선호지역
+[
+  {"city": "seoul", "cityName": "서울특별시", "district": "gangnam", "districtName": "강남구", "priority": 1},
+  {"city": "busan", "cityName": "부산광역시", "district": "haeundae", "districtName": "해운대구", "priority": 2}
+]
+```
 
 ## 🧪 테스트 방법
 
@@ -117,8 +139,7 @@ mysql -u root -p userdb
 SHOW TABLES;
 
 -- 데이터 확인
-SELECT * FROM users;
-SELECT * FROM preferred_regions;
+SELECT id, username, email, JSON_PRETTY(preferred_regions) as preferred_regions FROM users;
 ```
 
 ### 2. Spring Boot 서버 실행
@@ -151,6 +172,39 @@ curl -X POST http://localhost:8081/api/users/register \
   }'
 ```
 
+### 4. JSON 쿼리 예제
+```sql
+-- 특정 지역을 선호하는 사용자 찾기
+SELECT username, name, phone_number
+FROM users 
+WHERE JSON_SEARCH(preferred_regions, 'one', 'seoul') IS NOT NULL;
+
+-- 첫 번째 선호지역 정보 조회
+SELECT 
+    username,
+    JSON_EXTRACT(preferred_regions, '$[0].cityName') as first_city,
+    JSON_EXTRACT(preferred_regions, '$[0].districtName') as first_district,
+    JSON_EXTRACT(preferred_regions, '$[0].priority') as first_priority
+FROM users;
+```
+
+## 🔍 장점
+
+### 1. 단순한 구조
+- **하나의 테이블**로 모든 사용자 정보 관리
+- **복잡한 JOIN 없이** 빠른 조회
+- **스키마 변경이 쉬움**
+
+### 2. 유연한 데이터 저장
+- **JSON 형태**로 선호지역 정보 저장
+- **동적 필드 추가** 가능
+- **MySQL JSON 함수** 활용 가능
+
+### 3. 성능 최적화
+- **인덱스 설정**으로 빠른 검색
+- **JSON 인덱스** 지원
+- **단일 테이블** 조회로 성능 향상
+
 ## 🔍 문제 해결
 
 ### MySQL 연결 오류
@@ -158,14 +212,14 @@ curl -X POST http://localhost:8081/api/users/register \
 2. 포트 3306이 사용 가능한지 확인
 3. root 비밀번호가 올바른지 확인
 
-### 테이블 생성 오류
-1. 데이터베이스가 존재하는지 확인
-2. 사용자 권한이 충분한지 확인
-3. SQL 스크립트 문법 오류 확인
+### JSON 파싱 오류
+1. JSON 형식이 올바른지 확인
+2. Jackson 라이브러리 의존성 확인
+3. ObjectMapper 설정 확인
 
 ## 📝 추가 정보
 
-- **인덱스**: 성능 최적화를 위한 인덱스 설정 완료
-- **외래키**: 데이터 무결성을 위한 외래키 제약조건 설정
-- **체크 제약**: 우선순위는 1-3 범위로 제한
-- **유니크 제약**: 사용자별 지역-우선순위 조합 중복 방지
+- **JSON 인덱스**: MySQL 5.7+ 에서 JSON 컬럼 인덱스 지원
+- **성능**: 단일 테이블 조회로 JOIN 성능 이슈 해결
+- **확장성**: JSON 구조로 새로운 필드 추가 용이
+- **호환성**: 기존 API 구조 유지하면서 데이터 저장 방식만 변경
