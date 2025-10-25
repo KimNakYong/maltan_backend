@@ -2,30 +2,31 @@ spring:
   application:
     name: place-service
   
-  # PostgreSQL 데이터베이스 연결 설정
+  # MySQL 데이터베이스 연결 설정 (환경 변수 사용)
   datasource:
-    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:place_db}
-    username: ${DATABASE_USERNAME:maltan_user}
-    password: ${DATABASE_PASSWORD:maltan_pass123}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:mysql://${DB_HOST:10.0.2.15}:${DB_PORT:3306}/${DB_NAME:placedb}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&connectTimeout=10000&socketTimeout=10000
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      initialization-fail-timeout: 0  # 시작 시 실패해도 계속 재시도
   
   # JPA 설정
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    defer-datasource-initialization: true  # 데이터소스 초기화 지연
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
         use_sql_comments: true
-    defer-datasource-initialization: true
   
   # 파일 업로드 설정
   servlet:
@@ -109,9 +110,9 @@ spring:
       on-profile: docker
   
   datasource:
-    url: jdbc:postgresql://postgres:5432/place_db
-    username: maltan_user
-    password: maltan_pass123
+    url: jdbc:mysql://mysql:3306/placedb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: root
+    password: 1234
 
 server:
   port: 8082
