@@ -216,12 +216,38 @@ public class DatabaseMetricsService {
     }
     
     /**
-     * Redis 메트릭 조회 (Docker stats 사용)
+     * Redis 메트릭 조회 (Docker exec 사용)
      */
     private DatabaseMetrics getRedisMetrics() throws Exception {
-        // Redis는 Docker 컨테이너로 실행 중이므로 docker stats로 조회
+        // Redis 컨테이너 이름 확인 (여러 가능성 시도)
+        String[] possibleNames = {"redis", "maltan-redis", "redis-cache"};
+        String redisContainer = null;
+        
+        for (String name : possibleNames) {
+            try {
+                ProcessBuilder checkPb = new ProcessBuilder("docker", "inspect", name, "--format", "{{.State.Running}}");
+                Process checkProcess = checkPb.start();
+                java.io.BufferedReader checkReader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(checkProcess.getInputStream()));
+                String running = checkReader.readLine();
+                checkProcess.waitFor();
+                
+                if ("true".equals(running)) {
+                    redisContainer = name;
+                    break;
+                }
+            } catch (Exception e) {
+                // 다음 이름 시도
+            }
+        }
+        
+        if (redisContainer == null) {
+            throw new RuntimeException("Redis container not found");
+        }
+        
+        // Redis INFO 명령 실행
         ProcessBuilder pb = new ProcessBuilder(
-            "docker", "exec", "redis", "redis-cli", "INFO"
+            "docker", "exec", redisContainer, "redis-cli", "INFO"
         );
         pb.redirectErrorStream(true);
         
@@ -236,6 +262,7 @@ public class DatabaseMetricsService {
         
         String line;
         while ((line = reader.readLine()) != null) {
+            line = line.trim();
             if (line.startsWith("redis_version:")) {
                 version = line.split(":")[1].trim();
             } else if (line.startsWith("connected_clients:")) {
@@ -248,7 +275,10 @@ public class DatabaseMetricsService {
             }
         }
         
-        process.waitFor();
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("Redis CLI command failed with exit code: " + exitCode);
+        }
         
         double connectionUsage = maxConnections > 0 ? (connections * 100.0 / maxConnections) : 0;
         

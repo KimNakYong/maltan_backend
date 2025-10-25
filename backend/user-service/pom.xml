@@ -59,6 +59,12 @@
             <scope>runtime</scope>
         </dependency>
         
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
         <!-- H2 Database for testing - REMOVED (using MySQL only) -->
 
         <!-- Lombok -->
