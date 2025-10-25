@@ -90,5 +90,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     
     // 고정 기간이 만료된 게시글 조회
     List<Post> findByIsPinnedTrueAndPinnedUntilBefore(LocalDateTime now);
+    
+    // 통계용 메서드
+    Long countByIsDeletedFalse();
+    Long countByIsRecruitmentTrueAndIsDeletedFalse();
+    Long countByIsRecruitmentTrueAndStatusAndIsDeletedFalse(PostStatus status);
 }
 
