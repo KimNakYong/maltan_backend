@@ -139,6 +139,8 @@ public class CommentService {
             .id(comment.getId())
             .postId(comment.getPost().getId())
             .userId(comment.getUserId())
+            .userName(comment.getUserName())  // Comment 엔티티에서 userName 가져오기
+            .userNickname(comment.getUserName())  // 호환성을 위해 동일한 값 설정
             .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
             .content(comment.getContent())
             .likeCount(comment.getLikeCount())

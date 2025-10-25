@@ -16,7 +16,8 @@ public class CommentDto {
     private Long id;
     private Long postId;
     private Long userId;
-    private String userNickname;
+    private String userName;  // User Service에서 조회 (회원가입 시 입력한 이름)
+    private String userNickname;  // 호환성을 위해 유지
     private String userProfileImage;
     
     private Long parentCommentId;
