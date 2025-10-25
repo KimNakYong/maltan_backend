@@ -100,36 +100,36 @@ services:
     build:
       context: ../backend/place-service
       dockerfile: Dockerfile
-    container_name: maltan-place-service
+    container_name: place-service
     ports:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8082
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/place_db
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=place_db
       - DATABASE_USERNAME=maltan_user
       - DATABASE_PASSWORD=maltan_pass123
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - KAKAO_MAP_API_KEY=${KAKAO_MAP_API_KEY}
+      - UPLOAD_DIR=/app/uploads
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - maltan-network
     restart: unless-stopped
+    volumes:
+      - place_uploads:/app/uploads
     deploy:
       resources:
         limits:
-          memory: 256M
-          cpus: '0.3'
+          memory: 512M
+          cpus: '0.5'
         reservations:
-          memory: 128M
-          cpus: '0.1'
+          memory: 256M
+          cpus: '0.25'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -262,33 +262,6 @@ services:
       retries: 3
 
   # ===========================================
-  # 프론트엔드 (비활성화 - 경로 없음)
-  # ===========================================
-  # frontend:
-  #   build:
-  #     context: ../frontend
-  #     dockerfile: Dockerfile
-  #   container_name: maltan-frontend
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - REACT_APP_API_BASE_URL=http://localhost:8080
-  #     - REACT_APP_KAKAO_MAP_API_KEY=${KAKAO_MAP_API_KEY}
-  #   depends_on:
-  #     - gateway-service
-  #   networks:
-  #     - maltan-network
-  #   restart: unless-stopped
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 128M
-  #         cpus: '0.2'
-  #       reservations:
-  #         memory: 64M
-  #         cpus: '0.1'
-
-  # ===========================================
   # 모니터링 (선택사항)
   # ===========================================
   prometheus:
@@ -373,3 +346,4 @@ volumes:
   redis_data:
   grafana_data:
   mysql_data:
+  place_uploads:

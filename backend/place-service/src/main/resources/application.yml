@@ -1,0 +1,154 @@
+spring:
+  application:
+    name: place-service
+  
+  # PostgreSQL 데이터베이스 연결 설정
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:place_db}
+    username: ${DATABASE_USERNAME:maltan_user}
+    password: ${DATABASE_PASSWORD:maltan_pass123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+    defer-datasource-initialization: true
+  
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      enabled: true
+  
+  # Security 설정
+  security:
+    user:
+      name: admin
+      password: admin123
+      roles: ADMIN
+
+# 서버 설정
+server:
+  port: ${SERVER_PORT:8082}
+  servlet:
+    context-path: /api
+
+# 로깅 설정
+logging:
+  level:
+    com.example.placeservice: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/place-service.log
+
+# 애플리케이션 설정
+app:
+  upload:
+    dir: ${UPLOAD_DIR:uploads}
+    max-file-size: ${MAX_FILE_SIZE:10485760} # 10MB
+    allowed-types: image/jpeg,image/jpg,image/png,image/gif,image/webp
+  
+  cors:
+    allowed-origins: 
+      - http://localhost:3000
+      - http://localhost:8080
+      - https://*.ngrok-free.app
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
+# 액추에이터 설정 (모니터링)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+# 정보 설정
+info:
+  app:
+    name: Place Service
+    description: 장소 및 리뷰 관리 서비스
+    version: 1.0.0
+  java:
+    version: ${java.version}
+  spring:
+    version: ${spring-boot.version}
+
+---
+# Docker 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: docker
+  
+  datasource:
+    url: jdbc:postgresql://postgres:5432/place_db
+    username: maltan_user
+    password: maltan_pass123
+
+server:
+  port: 8082
+
+app:
+  upload:
+    dir: /app/uploads
+
+logging:
+  level:
+    root: INFO
+    com.example.placeservice: INFO
+
+---
+# 프로덕션 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+  
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+
+logging:
+  level:
+    root: WARN
+    com.example.placeservice: INFO
+  file:
+    name: /var/log/place-service/application.log
+
+app:
+  upload:
+    dir: /var/uploads/place-service
