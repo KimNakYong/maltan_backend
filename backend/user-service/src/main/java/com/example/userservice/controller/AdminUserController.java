@@ -1,10 +1,12 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.ApiResponse;
+import com.example.userservice.dto.ServiceMetrics;
 import com.example.userservice.dto.SystemMetrics;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.entity.User;
 import com.example.userservice.repository.UserRepository;
+import com.example.userservice.service.DockerMetricsService;
 import com.example.userservice.service.SystemMetricsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +30,7 @@ public class AdminUserController {
     
     private final UserRepository userRepository;
     private final SystemMetricsService systemMetricsService;
+    private final DockerMetricsService dockerMetricsService;
     
     /**
      * 사용자 목록 조회 (페이징)
@@ -201,6 +204,20 @@ public class AdminUserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("시스템 메트릭 조회 실패: " + e.getMessage(), 500));
+        }
+    }
+    
+    /**
+     * 서비스별 메트릭 조회
+     */
+    @GetMapping("/services/metrics")
+    public ResponseEntity<ApiResponse<List<ServiceMetrics>>> getServicesMetrics() {
+        try {
+            List<ServiceMetrics> metrics = dockerMetricsService.getAllServiceMetrics();
+            return ResponseEntity.ok(ApiResponse.success(metrics));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("서비스 메트릭 조회 실패: " + e.getMessage(), 500));
         }
     }
 }
