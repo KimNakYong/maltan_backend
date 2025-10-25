@@ -58,5 +58,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 활성화 상태별 사용자 수 조회
      */
-    long countByEnabled(boolean enabled);
+    long countByIsEnabled(boolean isEnabled);
 }

@@ -172,7 +172,7 @@ public class AdminUserController {
         try {
             long totalUsers = userRepository.count();
             long adminUsers = userRepository.countByRole(User.Role.ADMIN);
-            long activeUsers = userRepository.countByEnabled(true);
+            long activeUsers = userRepository.countByIsEnabled(true);
             
             Map<String, Object> stats = new HashMap<>();
             stats.put("totalUsers", totalUsers);
