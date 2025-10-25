@@ -13,7 +13,7 @@ import java.util.Map;
  * 다른 마이크로서비스에서 호출하는 Internal API
  */
 @RestController
-@RequestMapping("/api/user/internal")
+@RequestMapping("/user/internal")
 @RequiredArgsConstructor
 public class InternalUserController {
     
