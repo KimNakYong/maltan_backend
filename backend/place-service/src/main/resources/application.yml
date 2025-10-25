@@ -113,9 +113,9 @@ spring:
       on-profile: docker
   
   datasource:
-    url: jdbc:mysql://mysql:3306/placedb?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-    username: root
-    password: 1234
+    url: jdbc:mysql://${DB_HOST:10.0.2.15}:${DB_PORT:3306}/placedb?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
   
   jpa:
     hibernate:
