@@ -45,6 +45,7 @@ jobs:
             -e DB_USERNAME=recommendation_user \
             -e DB_PASSWORD=Recommendation2025 \
             -e SERVER_PORT=8084 \
+            -e PLACE_SERVICE_URL=http://10.0.2.15:8082 \
             recommendation-service:latest
       
       - name: Health Check
