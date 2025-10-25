@@ -1,6 +1,9 @@
 package com.maltan.recommendation.controller;
 
+import com.maltan.recommendation.client.PlaceServiceClient;
+import com.maltan.recommendation.dto.PlaceDto;
 import com.maltan.recommendation.dto.RecommendationDto;
+import com.maltan.recommendation.dto.RecommendationWithPlacesResponse;
 import com.maltan.recommendation.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +19,7 @@ import java.util.List;
 public class RecommendationController {
     
     private final RecommendationService recommendationService;
+    private final PlaceServiceClient placeServiceClient;
     
     /**
      * 사용자 기반 추천
@@ -65,6 +69,31 @@ public class RecommendationController {
         log.info("GET /recommendation/popular?regionSi={}", regionSi);
         List<RecommendationDto> recommendations = recommendationService.getPopularRecommendations(regionSi);
         return ResponseEntity.ok(recommendations);
+    }
+    
+    /**
+     * 선호 지역 근처 장소 조회 (지도용)
+     */
+    @GetMapping("/places/nearby")
+    public ResponseEntity<RecommendationWithPlacesResponse> getNearbyPlaces(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(defaultValue = "5.0") Double radius,  // 기본 반경 5km
+            @RequestParam(required = false) String regionName
+    ) {
+        log.info("GET /recommendation/places/nearby?lat={}&lng={}&radius={}", latitude, longitude, radius);
+        
+        // Place Service에서 근처 장소 조회
+        List<PlaceDto> nearbyPlaces = placeServiceClient.getNearbyPlaces(latitude, longitude, radius);
+        
+        RecommendationWithPlacesResponse response = RecommendationWithPlacesResponse.builder()
+            .regionName(regionName != null ? regionName : "선호 지역")
+            .centerLatitude(latitude)
+            .centerLongitude(longitude)
+            .nearbyPlaces(nearbyPlaces)
+            .build();
+        
+        return ResponseEntity.ok(response);
     }
     
     /**
