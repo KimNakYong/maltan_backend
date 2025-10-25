@@ -1,6 +1,9 @@
 package com.example.userservice.repository;
 
 import com.example.userservice.entity.User;
+import com.example.userservice.model.UserRole;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,4 +45,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.username = :username AND u.isEnabled = true")
     Optional<User> findActiveUserByUsername(@Param("username") String username);
+    
+    /**
+     * 이메일 또는 이름으로 검색 (페이징)
+     */
+    Page<User> findByEmailContainingOrNameContaining(String email, String name, Pageable pageable);
+    
+    /**
+     * 역할별 사용자 수 조회
+     */
+    long countByRole(UserRole role);
+    
+    /**
+     * 활성화 상태별 사용자 수 조회
+     */
+    long countByEnabled(boolean enabled);
 }

@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .requestMatchers("/user/auth/{id}").permitAll()
                 .requestMatchers("/user/auth/me/**").permitAll() // 현재 사용자 관련 엔드포인트 허용
                 .requestMatchers("/user/auth/me").permitAll() // 현재 사용자 정보 조회/업데이트 허용
+                .requestMatchers("/user/admin/**").permitAll() // 관리자 API (임시로 모두 허용, 나중에 ADMIN 권한 체크 추가)
                 .requestMatchers("/test/**").permitAll()
                 .anyRequest().authenticated()
             )
