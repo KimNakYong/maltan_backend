@@ -262,31 +262,31 @@ services:
       retries: 3
 
   # ===========================================
-  # 프론트엔드
+  # 프론트엔드 (비활성화 - 경로 없음)
   # ===========================================
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    container_name: maltan-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_API_BASE_URL=http://localhost:8080
-      - REACT_APP_KAKAO_MAP_API_KEY=${KAKAO_MAP_API_KEY}
-    depends_on:
-      - gateway-service
-    networks:
-      - maltan-network
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: '0.2'
-        reservations:
-          memory: 64M
-          cpus: '0.1'
+  # frontend:
+  #   build:
+  #     context: ../frontend
+  #     dockerfile: Dockerfile
+  #   container_name: maltan-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - REACT_APP_API_BASE_URL=http://localhost:8080
+  #     - REACT_APP_KAKAO_MAP_API_KEY=${KAKAO_MAP_API_KEY}
+  #   depends_on:
+  #     - gateway-service
+  #   networks:
+  #     - maltan-network
+  #   restart: unless-stopped
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #         cpus: '0.2'
+  #       reservations:
+  #         memory: 64M
+  #         cpus: '0.1'
 
   # ===========================================
   # 모니터링 (선택사항)
