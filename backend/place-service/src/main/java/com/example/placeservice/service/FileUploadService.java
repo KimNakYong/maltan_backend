@@ -176,25 +176,96 @@ public class FileUploadService {
             );
         }
         
-        List<PhotoDto> uploadedPhotos = uploadFiles(files, uploadedBy);
+        // 장소 조회
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> 
+            new RuntimeException("장소를 찾을 수 없습니다: " + placeId));
         
-        // 장소 ID 설정 및 정렬 순서 설정
-        for (int i = 0; i < uploadedPhotos.size(); i++) {
-            PhotoDto photoDto = uploadedPhotos.get(i);
-            Photo photo = photoRepository.findById(photoDto.getId()).orElseThrow();
+        List<PhotoDto> uploadedPhotos = new ArrayList<>();
+        boolean isFirstPhoto = !photoRepository.findByPlaceIdAndIsMainTrue(placeId).isPresent();
+        
+        // 각 파일 처리
+        for (int i = 0; i < files.length; i++) {
+            MultipartFile file = files[i];
+            if (file.isEmpty()) {
+                continue;
+            }
             
-            // 첫 번째 사진을 메인 사진으로 설정 (기존 메인 사진이 없는 경우)
-            if (i == 0 && !photoRepository.findByPlaceIdAndIsMainTrue(placeId).isPresent()) {
+            validateFile(file);
+            
+            String storedName = generateStoredName(file.getOriginalFilename());
+            String filePath = createFilePath(storedName);
+            
+            // 디렉토리 생성
+            createDirectories(filePath);
+            
+            Path targetPath = Paths.get(uploadDir, filePath);
+            long finalFileSize;
+            String finalContentType = file.getContentType();
+            
+            try {
+                if (enableCompression && isImageFile(file)) {
+                    // 이미지 압축 및 리사이징
+                    BufferedImage originalImage = ImageIO.read(file.getInputStream());
+                    
+                    if (originalImage != null) {
+                        // 압축된 이미지 저장
+                        Thumbnails.of(originalImage)
+                            .size(maxImageWidth, maxImageHeight)
+                            .outputQuality(imageQuality)
+                            .outputFormat("jpg")
+                            .toFile(targetPath.toFile());
+                        
+                        finalFileSize = Files.size(targetPath);
+                        finalContentType = "image/jpeg";
+                        
+                        // 썸네일 생성
+                        try {
+                            createThumbnail(originalImage, filePath);
+                        } catch (Exception e) {
+                            System.err.println("썸네일 생성 실패: " + e.getMessage());
+                        }
+                    } else {
+                        byte[] fileBytes = file.getBytes();
+                        Files.write(targetPath, fileBytes);
+                        finalFileSize = file.getSize();
+                    }
+                } else {
+                    byte[] fileBytes = file.getBytes();
+                    Files.write(targetPath, fileBytes);
+                    finalFileSize = file.getSize();
+                }
+            } catch (Exception e) {
+                System.err.println("이미지 압축 실패, 원본 저장: " + e.getMessage());
+                byte[] fileBytes = file.getBytes();
+                Files.write(targetPath, fileBytes);
+                finalFileSize = file.getSize();
+                finalContentType = file.getContentType();
+            }
+            
+            // Photo 엔티티 생성 (place 설정 포함)
+            Photo photo = new Photo(
+                file.getOriginalFilename(),
+                storedName,
+                filePath,
+                finalFileSize,
+                finalContentType,
+                uploadedBy
+            );
+            
+            // 장소 설정
+            photo.setPlace(place);
+            
+            // 첫 번째 사진을 메인으로 설정 (기존 메인 사진이 없는 경우)
+            if (i == 0 && isFirstPhoto) {
                 photo.setIsMain(true);
             }
             
-            Place place = placeRepository.findById(placeId).orElseThrow(() -> 
-                new RuntimeException("장소를 찾을 수 없습니다: " + placeId));
-            photo.setPlace(place);
+            // 정렬 순서 설정
             photo.setSortOrder(photoRepository.findNextSortOrderByPlaceId(placeId));
             
-            photoRepository.save(photo);
-            uploadedPhotos.set(i, new PhotoDto(photo));
+            // DB 저장
+            Photo savedPhoto = photoRepository.save(photo);
+            uploadedPhotos.add(new PhotoDto(savedPhoto));
         }
         
         return uploadedPhotos;
