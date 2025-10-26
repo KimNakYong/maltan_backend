@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,19 +26,8 @@ public class ImageController {
     private String uploadDir;
 
     @GetMapping("/uploads/**")
-    public ResponseEntity<Resource> serveImage(@RequestParam(required = false) String dummy) {
+    public ResponseEntity<Resource> serveImage(HttpServletRequest request) {
         try {
-            // 전체 요청 경로 가져오기
-            String fullPath = org.springframework.web.context.request.RequestContextHolder
-                    .currentRequestAttributes()
-                    .toString();
-            
-            // 더 간단한 방법: HttpServletRequest 사용
-            javax.servlet.http.HttpServletRequest request = 
-                ((org.springframework.web.context.request.ServletRequestAttributes) 
-                org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes())
-                .getRequest();
-            
             String requestURI = request.getRequestURI();
             String imagePath = requestURI.replace("/uploads/", "");
             
