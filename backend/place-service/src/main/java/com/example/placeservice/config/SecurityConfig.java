@@ -37,21 +37,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                // 공개 API
-                .requestMatchers("/api/categories/**").permitAll()
-                .requestMatchers("/api/places/**").permitAll()
-                .requestMatchers("/api/reviews/**").permitAll()
-                .requestMatchers("/api/files/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
-                
-                // 액추에이터 엔드포인트
-                .requestMatchers("/actuator/**").permitAll()
-                
-                // Swagger UI (개발 환경)
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                
-                // 기타 모든 요청은 인증 필요
-                .anyRequest().authenticated()
+                // 개발 환경: 모든 요청 허용 (프로덕션에서는 JWT 인증 구현 필요)
+                .anyRequest().permitAll()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
             .formLogin(formLogin -> formLogin.disable());
