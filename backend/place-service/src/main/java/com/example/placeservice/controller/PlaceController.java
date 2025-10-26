@@ -132,12 +132,72 @@ public class PlaceController {
     }
 
     /**
-     * 장소 생성
+     * 장소 생성 (JSON만)
      */
-    @PostMapping
+    @PostMapping(consumes = "application/json")
     public ResponseEntity<ApiResponse<PlaceDto>> createPlace(@Valid @RequestBody PlaceDto placeDto) {
         try {
             PlaceDto createdPlace = placeService.createPlace(placeDto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("장소 생성 성공", createdPlace));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("장소 생성 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 장소 생성 (이미지 포함)
+     */
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<PlaceDto>> createPlaceWithImage(
+            @RequestParam("name") String name,
+            @RequestParam("address") String address,
+            @RequestParam("latitude") BigDecimal latitude,
+            @RequestParam("longitude") BigDecimal longitude,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "detailedAddress", required = false) String detailedAddress,
+            @RequestParam(value = "phoneNumber", required = false) String phoneNumber,
+            @RequestParam(value = "website", required = false) String website,
+            @RequestParam(value = "openingTime", required = false) String openingTime,
+            @RequestParam(value = "closingTime", required = false) String closingTime,
+            @RequestParam(value = "closedDays", required = false) String closedDays,
+            @RequestParam(value = "isOpen24h", required = false, defaultValue = "false") Boolean isOpen24h,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+        try {
+            // PlaceDto 생성
+            PlaceDto placeDto = new PlaceDto();
+            placeDto.setName(name);
+            placeDto.setAddress(address);
+            placeDto.setLatitude(latitude);
+            placeDto.setLongitude(longitude);
+            placeDto.setCategoryId(categoryId);
+            placeDto.setDescription(description);
+            placeDto.setDetailedAddress(detailedAddress);
+            placeDto.setPhoneNumber(phoneNumber);
+            placeDto.setWebsite(website);
+            placeDto.setOpeningTime(openingTime);
+            placeDto.setClosingTime(closingTime);
+            placeDto.setClosedDays(closedDays);
+            placeDto.setIsOpen24h(isOpen24h);
+            placeDto.setCreatedBy(1L); // 임시
+            
+            // 장소 생성
+            PlaceDto createdPlace = placeService.createPlace(placeDto);
+            
+            // 이미지가 있으면 업로드
+            if (file != null && !file.isEmpty()) {
+                MultipartFile[] files = new MultipartFile[] { file };
+                fileUploadService.uploadPlacePhotos(files, createdPlace.getId(), 1L);
+                
+                // 업데이트된 장소 정보 다시 조회 (이미지 포함)
+                createdPlace = placeService.getPlaceById(createdPlace.getId()).orElse(createdPlace);
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("장소 생성 성공", createdPlace));
         } catch (RuntimeException e) {
