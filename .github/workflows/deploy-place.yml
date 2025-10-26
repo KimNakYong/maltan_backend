@@ -36,7 +36,7 @@ jobs:
         run: |
           docker run -d \
             --name place-service \
-            --network maltan-network \
+            --network docker_maltan-network \
             --restart unless-stopped \
             -p 8082:8082 \
             -v place_uploads:/app/uploads \

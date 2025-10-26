@@ -42,13 +42,13 @@ jobs:
         run: |
           docker run -d \
             --name gateway-service \
-            --network maltan-network \
+            --network docker_maltan-network \
             --restart unless-stopped \
             -p 8080:8080 \
-            -e USER_SERVICE_URL=http://10.0.2.15:8081 \
-            -e COMMUNITY_SERVICE_URL=http://10.0.2.15:8083 \
-            -e RECOMMENDATION_SERVICE_URL=http://10.0.2.15:8084 \
-            -e PLACE_SERVICE_URL=http://10.0.2.15:8082 \
+            -e USER_SERVICE_URL=http://user-service:8081 \
+            -e COMMUNITY_SERVICE_URL=http://community-service:8083 \
+            -e RECOMMENDATION_SERVICE_URL=http://recommendation-service:8084 \
+            -e PLACE_SERVICE_URL=http://place-service:8082 \
             gateway-service:latest
       
       - name: Check Container Status

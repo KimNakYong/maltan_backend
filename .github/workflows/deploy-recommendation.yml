@@ -36,16 +36,11 @@ jobs:
         run: |
           docker run -d \
             --name recommendation-service \
-            --network maltan-network \
+            --network docker_maltan-network \
             --restart unless-stopped \
             -p 8084:8084 \
-            -e DB_HOST=10.0.2.15 \
-            -e DB_PORT=5432 \
-            -e DB_NAME=recommendation_db \
-            -e DB_USERNAME=recommendation_user \
-            -e DB_PASSWORD=Recommendation2025 \
             -e SERVER_PORT=8084 \
-            -e PLACE_SERVICE_URL=http://10.0.2.15:8082 \
+            -e PLACE_SERVICE_URL=http://place-service:8082 \
             recommendation-service:latest
       
       - name: Health Check
