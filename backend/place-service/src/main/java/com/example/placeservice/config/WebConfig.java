@@ -4,15 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import jakarta.annotation.PostConstruct;
 import java.io.File;
+import java.nio.file.Paths;
 
 /**
  * Web MVC 설정
  */
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebConfig.class);
 
@@ -35,5 +38,27 @@ public class WebConfig {
             boolean created = uploadDirFile.mkdirs();
             log.info("Created upload directory: {}", created);
         }
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 절대 경로로 변환
+        String absolutePath = Paths.get(uploadDir).toAbsolutePath().toString().replace("\\", "/");
+        
+        // 끝에 슬래시가 없으면 추가
+        if (!absolutePath.endsWith("/")) {
+            absolutePath += "/";
+        }
+        
+        String resourceLocation = "file:" + absolutePath;
+        
+        log.info("=== Resource Handler Registration ===");
+        log.info("URL Pattern: /uploads/**");
+        log.info("Resource Location: {}", resourceLocation);
+        log.info("=====================================");
+        
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations(resourceLocation)
+                .setCachePeriod(0); // 개발 환경: 캐시 비활성화
     }
 }
