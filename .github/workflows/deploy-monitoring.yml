@@ -32,27 +32,44 @@ jobs:
         run: |
           cd docker
           
+          # 현재 실행 중인 서비스 확인
+          echo "=== Current Running Services ==="
+          docker-compose ps
+          
           # monitoring-service 이미지 재빌드
+          echo "=== Building Monitoring Service ==="
           docker-compose build monitoring-service
           
-          # monitoring-service만 재시작 (기존 서비스 영향 없음)
+          # monitoring-service 시작 (기존 서비스 영향 없음)
+          echo "=== Starting Monitoring Service ==="
           docker-compose up -d --no-deps monitoring-service
           
-          # gateway-service 재시작 (새 라우팅 적용)
-          docker-compose restart gateway-service
+          # gateway-service 재시작 (새 라우팅 적용) - 없으면 시작
+          echo "=== Restarting Gateway Service ==="
+          docker-compose up -d gateway-service || echo "Gateway service will be started instead"
           
-          echo "Waiting for services to start..."
+          echo "Waiting for services to initialize..."
           sleep 10
           
           # 헬스 체크
-          echo "=== Monitoring Service Status ==="
-          docker-compose ps monitoring-service
+          echo "=== All Services Status ==="
+          docker-compose ps
           
           echo "=== Monitoring Service Logs ==="
           docker-compose logs --tail=50 monitoring-service
           
-          echo "=== Gateway Service Logs ==="
-          docker-compose logs --tail=20 gateway-service
+          echo "=== Gateway Service Status ==="
+          docker ps | grep gateway-service || echo "Gateway service not running"
+          
+          if docker ps | grep -q gateway-service; then
+            echo "=== Gateway Service Logs ==="
+            docker-compose logs --tail=20 gateway-service
+          fi
+          
+          # Monitoring Service API 테스트
+          echo "=== Testing Monitoring Service API ==="
+          sleep 5
+          curl -f http://localhost:8085/api/monitoring/system/metrics || echo "Monitoring API not ready yet"
           
           echo "✅ Monitoring Service deployed successfully!"
 

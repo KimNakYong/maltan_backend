@@ -1,6 +1,5 @@
 package com.example.placeservice.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,7 +12,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Spring Security 설정
@@ -22,20 +20,11 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins}")
-    private List<String> allowedOrigins;
+    private final CorsProperties corsProperties;
 
-    @Value("${app.cors.allowed-methods}")
-    private String allowedMethods;
-
-    @Value("${app.cors.allowed-headers}")
-    private String allowedHeaders;
-
-    @Value("${app.cors.allow-credentials}")
-    private boolean allowCredentials;
-
-    @Value("${app.cors.max-age}")
-    private long maxAge;
+    public SecurityConfig(CorsProperties corsProperties) {
+        this.corsProperties = corsProperties;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -75,19 +64,19 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // 허용할 Origin 설정
-        configuration.setAllowedOriginPatterns(allowedOrigins);
+        configuration.setAllowedOriginPatterns(corsProperties.getAllowedOrigins());
         
         // 허용할 HTTP 메서드 설정
-        configuration.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
+        configuration.setAllowedMethods(Arrays.asList(corsProperties.getAllowedMethods().split(",")));
         
         // 허용할 헤더 설정
-        configuration.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
+        configuration.setAllowedHeaders(Arrays.asList(corsProperties.getAllowedHeaders().split(",")));
         
         // 자격 증명 허용 여부
-        configuration.setAllowCredentials(allowCredentials);
+        configuration.setAllowCredentials(corsProperties.isAllowCredentials());
         
         // preflight 요청 캐시 시간
-        configuration.setMaxAge(maxAge);
+        configuration.setMaxAge(corsProperties.getMaxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
