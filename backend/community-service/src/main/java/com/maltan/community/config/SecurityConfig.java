@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/community/statistics").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/info").permitAll()
+                .requestMatchers("/actuator/prometheus").permitAll()
+                .requestMatchers("/actuator/metrics").permitAll()
                 
                 // 그 외 모든 요청은 인증 필요
                 .anyRequest().authenticated()
