@@ -25,6 +25,9 @@ public class Photo {
     @Column(name = "stored_name", nullable = false, length = 255)
     private String storedName;
 
+    @Column(name = "file_name", length = 255)
+    private String fileName;
+
     @Column(name = "file_path", nullable = false, length = 500)
     private String filePath;
 
@@ -62,6 +65,7 @@ public class Photo {
     public Photo(String originalName, String storedName, String filePath, Long fileSize, String contentType, Long uploadedBy) {
         this.originalName = originalName;
         this.storedName = storedName;
+        this.fileName = storedName; // file_name은 stored_name과 동일하게 설정
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.contentType = contentType;
@@ -100,6 +104,14 @@ public class Photo {
 
     public void setStoredName(String storedName) {
         this.storedName = storedName;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public String getFilePath() {
