@@ -1,8 +1,8 @@
 -- 데이터베이스 생성 (존재하지 않으면)
-CREATE DATABASE IF NOT EXISTS userdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS user_service CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- userdb 데이터베이스 사용
-USE userdb;
+-- user_service 데이터베이스 사용
+USE user_service;
 
 -- 기존 테이블이 있다면 삭제
 DROP TABLE IF EXISTS users;

@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo MySQL userdb 데이터베이스 확인
+echo MySQL user_service 데이터베이스 확인
 echo ========================================
 echo.
 
@@ -38,10 +38,10 @@ echo [INFO] MySQL 서비스가 실행 중입니다.
 echo.
 
 REM 데이터베이스 확인
-echo [INFO] userdb 데이터베이스 확인 중...
-mysql -u root -p -e "SHOW DATABASES;" 2>nul | findstr /i userdb
+echo [INFO] user_service 데이터베이스 확인 중...
+mysql -u root -p -e "SHOW DATABASES;" 2>nul | findstr /i user_service
 if %errorlevel% neq 0 (
-    echo [WARNING] userdb 데이터베이스가 존재하지 않습니다.
+    echo [WARNING] user_service 데이터베이스가 존재하지 않습니다.
     echo.
     echo 데이터베이스를 생성하시겠습니까? (Y/N)
     set /p choice=
@@ -49,21 +49,21 @@ if %errorlevel% neq 0 (
         echo [INFO] 데이터베이스 생성 중...
         mysql -u root -p < quick_setup_mysql.sql
         if %errorlevel% equ 0 (
-            echo [SUCCESS] userdb 데이터베이스가 성공적으로 생성되었습니다!
+            echo [SUCCESS] user_service 데이터베이스가 성공적으로 생성되었습니다!
         ) else (
             echo [ERROR] 데이터베이스 생성에 실패했습니다.
         )
     )
 ) else (
-    echo [SUCCESS] userdb 데이터베이스가 존재합니다.
+    echo [SUCCESS] user_service 데이터베이스가 존재합니다.
     echo.
     echo [INFO] 테이블 확인 중...
-    mysql -u root -p -e "USE userdb; SHOW TABLES;" 2>nul | findstr /i users
+    mysql -u root -p -e "USE user_service; SHOW TABLES;" 2>nul | findstr /i users
     if %errorlevel% equ 0 (
         echo [SUCCESS] users 테이블이 존재합니다.
         echo.
         echo [INFO] 데이터 확인:
-        mysql -u root -p -e "USE userdb; SELECT COUNT(*) as user_count FROM users;"
+        mysql -u root -p -e "USE user_service; SELECT COUNT(*) as user_count FROM users;"
     ) else (
         echo [WARNING] users 테이블이 존재하지 않습니다.
         echo quick_setup_mysql.sql을 실행하여 테이블을 생성하세요.
@@ -74,7 +74,7 @@ echo.
 echo [INFO] XShell에서 확인하는 방법:
 echo 1. XShell에서 MySQL 서버에 접속
 echo 2. SHOW DATABASES; 실행
-echo 3. USE userdb; 실행
+echo 3. USE user_service; 실행
 echo 4. SHOW TABLES; 실행
 echo 5. SELECT * FROM users; 실행
 echo.

@@ -1,4 +1,4 @@
-# 우분투 MySQL userdb와 유저서비스 연결 가이드
+# 우분투 MySQL user_service와 유저서비스 연결 가이드
 
 ## 🔗 연결 단계별 가이드
 
@@ -22,8 +22,8 @@ mysql -u root -p
 # 데이터베이스 목록 확인
 SHOW DATABASES;
 
-# userdb 사용
-USE userdb;
+# user_service 사용
+USE user_service;
 
 # 테이블 목록 확인
 SHOW TABLES;
@@ -50,7 +50,7 @@ spring:
   
   # MySQL 데이터베이스 연결 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
     password: your_mysql_password  # 실제 MySQL 비밀번호로 변경
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -183,8 +183,8 @@ sudo ufw status
 mysql -u root -p -e "SELECT user, host FROM mysql.user;"
 
 # 새 사용자 생성 (선택사항)
-mysql -u root -p -e "CREATE USER 'userdb'@'localhost' IDENTIFIED BY 'password';"
-mysql -u root -p -e "GRANT ALL PRIVILEGES ON userdb.* TO 'userdb'@'localhost';"
+mysql -u root -p -e "CREATE USER 'user_service'@'localhost' IDENTIFIED BY 'password';"
+mysql -u root -p -e "GRANT ALL PRIVILEGES ON user_service.* TO 'user_service'@'localhost';"
 ```
 
 ### 7. 데이터베이스 연결 확인
@@ -206,7 +206,7 @@ SELECT
     table_schema as 'Database',
     ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) as 'Size (MB)'
 FROM information_schema.tables 
-WHERE table_schema = 'userdb'
+WHERE table_schema = 'user_service'
 GROUP BY table_schema;
 ```
 
@@ -238,16 +238,16 @@ EXPLAIN SELECT * FROM users WHERE username = 'admin';
 #### 데이터베이스 백업
 ```bash
 # 전체 데이터베이스 백업
-mysqldump -u root -p userdb > userdb_backup.sql
+mysqldump -u root -p user_service > user_service_backup.sql
 
 # 특정 테이블만 백업
-mysqldump -u root -p userdb users > users_backup.sql
+mysqldump -u root -p user_service users > users_backup.sql
 ```
 
 #### 데이터베이스 복원
 ```bash
 # 백업에서 복원
-mysql -u root -p userdb < userdb_backup.sql
+mysql -u root -p user_service < user_service_backup.sql
 ```
 
 ### 10. 모니터링
@@ -267,7 +267,7 @@ mysql -u root -p -e "SHOW STATUS LIKE 'Threads_connected';"
 ## 🎯 완료 확인 체크리스트
 
 - [ ] MySQL 서비스 실행 중
-- [ ] userdb 데이터베이스 존재
+- [ ] user_service 데이터베이스 존재
 - [ ] users 테이블 생성됨
 - [ ] Spring Boot application.yml 설정 완료
 - [ ] 서버 실행 성공

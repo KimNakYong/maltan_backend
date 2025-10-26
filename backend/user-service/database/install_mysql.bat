@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo MySQL 설치 및 userdb 데이터베이스 생성
+echo MySQL 설치 및 user_service 데이터베이스 생성
 echo ========================================
 echo.
 
@@ -26,14 +26,14 @@ echo 2. MySQL 접속:
 echo    mysql -u root -p
 echo.
 echo 3. 데이터베이스 생성:
-echo    CREATE DATABASE userdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+echo    CREATE DATABASE user_service CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 echo.
 echo 4. 통합 테이블 생성:
-echo    mysql -u root -p userdb ^< create_unified_userdb.sql
+echo    mysql -u root -p user_service ^< create_unified_user_service.sql
 echo.
 echo 5. 데이터베이스 확인:
 echo    SHOW DATABASES;
-echo    USE userdb;
+echo    USE user_service;
 echo    SHOW TABLES;
 echo    SELECT * FROM users;
 echo.

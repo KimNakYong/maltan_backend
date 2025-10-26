@@ -1,4 +1,4 @@
-# 우분투 MySQL 설치 및 userdb 데이터베이스 생성 명령어
+# 우분투 MySQL 설치 및 user_service 데이터베이스 생성 명령어
 
 ## 🚀 자동 설치 (권장)
 
@@ -43,10 +43,10 @@ sudo mysql -u root -p
 ### 6. 데이터베이스 생성 (MySQL 접속 후)
 ```sql
 -- 데이터베이스 생성
-CREATE DATABASE userdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE user_service CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 데이터베이스 사용
-USE userdb;
+USE user_service;
 
 -- 테이블 생성
 source ubuntu_mysql_manual.sql;
@@ -69,9 +69,9 @@ mysql -u root -p
 SHOW DATABASES;
 ```
 
-### 3. userdb 사용
+### 3. user_service 사용
 ```sql
-USE userdb;
+USE user_service;
 ```
 
 ### 4. 테이블 목록 확인
@@ -127,7 +127,7 @@ FROM users;
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: your_mysql_password
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -163,8 +163,8 @@ sudo tail -f /var/log/mysql/error.log
 sudo mysql -u root -p -e "SELECT user, host FROM mysql.user;"
 
 # 새 사용자 생성 (선택사항)
-sudo mysql -u root -p -e "CREATE USER 'userdb'@'localhost' IDENTIFIED BY 'password';"
-sudo mysql -u root -p -e "GRANT ALL PRIVILEGES ON userdb.* TO 'userdb'@'localhost';"
+sudo mysql -u root -p -e "CREATE USER 'user_service'@'localhost' IDENTIFIED BY 'password';"
+sudo mysql -u root -p -e "GRANT ALL PRIVILEGES ON user_service.* TO 'user_service'@'localhost';"
 ```
 
 ### 3. 방화벽 설정
@@ -178,7 +178,7 @@ sudo ufw status
 
 ## 📊 데이터베이스 정보
 
-- **데이터베이스명**: userdb
+- **데이터베이스명**: user_service
 - **테이블명**: users
 - **문자셋**: utf8mb4
 - **콜레이션**: utf8mb4_unicode_ci
@@ -189,7 +189,7 @@ sudo ufw status
 ## 🎯 완료 확인
 
 1. ✅ MySQL 설치 완료
-2. ✅ userdb 데이터베이스 생성
+2. ✅ user_service 데이터베이스 생성
 3. ✅ users 테이블 생성
 4. ✅ 샘플 데이터 삽입
 5. ✅ Spring Boot 연결 설정

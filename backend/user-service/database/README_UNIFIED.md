@@ -5,7 +5,7 @@
 
 ## 🗄️ 데이터베이스 구조
 
-### 1. 데이터베이스: `userdb`
+### 1. 데이터베이스: `user_service`
 - **문자셋**: utf8mb4
 - **콜레이션**: utf8mb4_unicode_ci
 
@@ -77,13 +77,13 @@ setup_unified_mysql.bat
 mysql -u root -p
 
 -- 데이터베이스 생성
-CREATE DATABASE userdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE user_service CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 #### 4. 통합 테이블 생성
 ```bash
 # SQL 스크립트 실행
-mysql -u root -p userdb < create_unified_userdb.sql
+mysql -u root -p user_service < create_unified_user_service.sql
 ```
 
 ## 🔧 Spring Boot 설정
@@ -92,7 +92,7 @@ mysql -u root -p userdb < create_unified_userdb.sql
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
     password: # MySQL root 비밀번호
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -133,7 +133,7 @@ spring:
 ### 1. 데이터베이스 연결 확인
 ```sql
 -- MySQL 접속
-mysql -u root -p userdb
+mysql -u root -p user_service
 
 -- 테이블 확인
 SHOW TABLES;

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Docker를 사용한 MySQL 설치 및 userdb 데이터베이스 생성
+# Docker를 사용한 MySQL 설치 및 user_service 데이터베이스 생성
 # 실행 방법: chmod +x ubuntu_docker_setup.sh && ./ubuntu_docker_setup.sh
 
 echo "========================================"
-echo "Docker MySQL 설치 및 userdb 데이터베이스 생성"
+echo "Docker MySQL 설치 및 user_service 데이터베이스 생성"
 echo "========================================"
 echo
 
@@ -35,13 +35,13 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: userdb-mysql
+    container_name: user_service-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: userdb
-      MYSQL_USER: userdb
-      MYSQL_PASSWORD: userdbpassword
+      MYSQL_DATABASE: user_service
+      MYSQL_USER: user_service
+      MYSQL_PASSWORD: user_servicepassword
     ports:
       - "3306:3306"
     volumes:
@@ -51,7 +51,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: userdb-phpmyadmin
+    container_name: user_service-phpmyadmin
     restart: always
     environment:
       PMA_HOST: mysql
@@ -79,7 +79,7 @@ docker-compose ps
 # 6. 데이터베이스 연결 테스트
 echo "[6/6] 데이터베이스 연결 테스트 중..."
 sleep 5
-docker exec -it userdb-mysql mysql -u root -prootpassword -e "USE userdb; SHOW TABLES;"
+docker exec -it user_service-mysql mysql -u root -prootpassword -e "USE user_service; SHOW TABLES;"
 
 echo
 echo "========================================"
@@ -89,7 +89,7 @@ echo
 echo "접속 정보:"
 echo "- MySQL 호스트: localhost"
 echo "- MySQL 포트: 3306"
-echo "- 데이터베이스: userdb"
+echo "- 데이터베이스: user_service"
 echo "- 사용자: root"
 echo "- 비밀번호: rootpassword"
 echo
@@ -99,12 +99,12 @@ echo "- 사용자: root"
 echo "- 비밀번호: rootpassword"
 echo
 echo "MySQL 접속 명령어:"
-echo "docker exec -it userdb-mysql mysql -u root -prootpassword"
+echo "docker exec -it user_service-mysql mysql -u root -prootpassword"
 echo
 echo "Spring Boot application.yml 설정:"
 echo "spring:"
 echo "  datasource:"
-echo "    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+echo "    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
 echo "    username: root"
 echo "    password: rootpassword"
 echo "    driver-class-name: com.mysql.cj.jdbc.Driver"

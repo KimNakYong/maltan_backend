@@ -12,9 +12,9 @@ spring:
   
   # MySQL 데이터베이스 연결 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
-    password: your_mysql_password  # MySQL root 비밀번호로 변경
+    password: 1234  # MySQL root 비밀번호로 변경
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   # JPA 설정

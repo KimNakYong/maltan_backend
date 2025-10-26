@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# 우분투 MySQL 설치 및 userdb 데이터베이스 생성 스크립트
+# 우분투 MySQL 설치 및 user_service 데이터베이스 생성 스크립트
 # 실행 방법: chmod +x ubuntu_mysql_setup.sh && ./ubuntu_mysql_setup.sh
 
 echo "========================================"
-echo "우분투 MySQL 설치 및 userdb 데이터베이스 생성"
+echo "우분투 MySQL 설치 및 user_service 데이터베이스 생성"
 echo "========================================"
 echo
 
@@ -35,14 +35,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 6. userdb 데이터베이스 생성
-echo "[6/8] userdb 데이터베이스 생성 중..."
+# 6. user_service 데이터베이스 생성
+echo "[6/8] user_service 데이터베이스 생성 중..."
 sudo mysql -u root -p << EOF
-CREATE DATABASE IF NOT EXISTS userdb 
+CREATE DATABASE IF NOT EXISTS user_service 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
 
-USE userdb;
+USE user_service;
 
 -- 기존 테이블 삭제 (있다면)
 DROP TABLE IF EXISTS users;
@@ -85,7 +85,7 @@ JSON_ARRAY(
 SELECT '=== 데이터베이스 목록 ===' as info;
 SHOW DATABASES;
 
-SELECT '=== userdb 테이블 목록 ===' as info;
+SELECT '=== user_service 테이블 목록 ===' as info;
 SHOW TABLES;
 
 SELECT '=== users 테이블 데이터 ===' as info;
@@ -120,7 +120,7 @@ echo
 echo "MySQL 접속 정보:"
 echo "- 호스트: localhost"
 echo "- 포트: 3306"
-echo "- 데이터베이스: userdb"
+echo "- 데이터베이스: user_service"
 echo "- 사용자: root"
 echo "- 비밀번호: 설정한 비밀번호"
 echo
@@ -128,12 +128,12 @@ echo "MySQL 접속 명령어:"
 echo "mysql -u root -p"
 echo
 echo "데이터베이스 확인 명령어:"
-echo "mysql -u root -p -e \"USE userdb; SHOW TABLES;\""
+echo "mysql -u root -p -e \"USE user_service; SHOW TABLES;\""
 echo
 echo "Spring Boot application.yml 설정:"
 echo "spring:"
 echo "  datasource:"
-echo "    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+echo "    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
 echo "    username: root"
 echo "    password: [설정한 비밀번호]"
 echo "    driver-class-name: com.mysql.cj.jdbc.Driver"

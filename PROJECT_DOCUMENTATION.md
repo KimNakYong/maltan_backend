@@ -372,7 +372,7 @@ VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 
 ## 5. 데이터베이스 설계
 
-### 5.1 MySQL (User Service) - `userdb`
+### 5.1 MySQL (User Service) - `user_service`
 
 - `users`: 사용자 정보
 - `preferred_regions`: 관심 지역 (1:N)
@@ -408,7 +408,7 @@ Internet → Ngrok (HTTPS) → Ubuntu Server
                             │   ├─ Recommendation (8084)
                             │   └─ Monitoring (8085)
                             └─ Host Services (10.0.2.15)
-                                ├─ MySQL (3306) - userdb, placedb
+                                ├─ MySQL (3306) - user_service, placedb
                                 ├─ PostgreSQL (5432) - community_db, recommendation_db
                                 └─ Redis (6379)
 ```
@@ -829,7 +829,7 @@ routes:
 sudo mysql -u root -p
 
 # Docker 네트워크에서 접근 허용
-GRANT ALL PRIVILEGES ON userdb.* TO 'root'@'172.%.%.%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON user_service.* TO 'root'@'172.%.%.%' IDENTIFIED BY 'password';
 FLUSH PRIVILEGES;
 
 # MySQL 바인드 주소 확인

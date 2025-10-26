@@ -44,12 +44,12 @@ echo [INFO] MySQL 서비스가 실행 중입니다.
 echo.
 
 REM 기존 데이터베이스 삭제 (선택사항)
-echo [INFO] 기존 userdb 데이터베이스를 삭제합니다...
-mysql -u root -p -e "DROP DATABASE IF EXISTS userdb;"
+echo [INFO] 기존 user_service 데이터베이스를 삭제합니다...
+mysql -u root -p -e "DROP DATABASE IF EXISTS user_service;"
 
 REM 데이터베이스 생성
-echo [INFO] 통합 userdb 데이터베이스를 생성합니다...
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS userdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+echo [INFO] 통합 user_service 데이터베이스를 생성합니다...
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS user_service CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 if %errorlevel% neq 0 (
     echo [ERROR] 데이터베이스 생성에 실패했습니다.
@@ -63,7 +63,7 @@ echo.
 
 REM 테이블 생성
 echo [INFO] 통합 테이블을 생성합니다...
-mysql -u root -p userdb < create_unified_userdb.sql
+mysql -u root -p user_service < create_unified_user_service.sql
 
 if %errorlevel% neq 0 (
     echo [ERROR] 테이블 생성에 실패했습니다.
@@ -74,7 +74,7 @@ if %errorlevel% neq 0 (
 echo [SUCCESS] 모든 설정이 완료되었습니다!
 echo.
 echo 통합 데이터베이스 정보:
-echo - 데이터베이스: userdb
+echo - 데이터베이스: user_service
 echo - 테이블: users (통합 테이블)
 echo - 선호지역: JSON 형태로 저장
 echo - 호스트: localhost

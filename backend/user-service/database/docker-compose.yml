@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: userdb
+      MYSQL_DATABASE: user_service
       MYSQL_USER: root
       MYSQL_PASSWORD: 1234
     ports:
@@ -15,7 +15,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./01_create_database.sql:/docker-entrypoint-initdb.d/01_create_database.sql
-      - ./create_unified_userdb.sql:/docker-entrypoint-initdb.d/04_create_unified_userdb.sql
+      - ./create_unified_user_service.sql:/docker-entrypoint-initdb.d/04_create_unified_user_service.sql
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - user-service-network

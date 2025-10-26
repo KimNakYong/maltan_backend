@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# 우분투 MySQL userdb 연결 테스트 스크립트
+# 우분투 MySQL user_service 연결 테스트 스크립트
 # 실행 방법: chmod +x ubuntu_test_connection.sh && ./ubuntu_test_connection.sh
 
 echo "========================================"
-echo "MySQL userdb 연결 테스트"
+echo "MySQL user_service 연결 테스트"
 echo "========================================"
 echo
 
@@ -28,19 +28,19 @@ else
     exit 1
 fi
 
-# 3. userdb 데이터베이스 확인
-echo "[3/6] userdb 데이터베이스 확인 중..."
-if mysql -u root -p -e "USE userdb; SELECT 1;" 2>/dev/null; then
-    echo "✅ userdb 데이터베이스가 존재합니다."
+# 3. user_service 데이터베이스 확인
+echo "[3/6] user_service 데이터베이스 확인 중..."
+if mysql -u root -p -e "USE user_service; SELECT 1;" 2>/dev/null; then
+    echo "✅ user_service 데이터베이스가 존재합니다."
 else
-    echo "❌ userdb 데이터베이스가 존재하지 않습니다."
+    echo "❌ user_service 데이터베이스가 존재하지 않습니다."
     echo "데이터베이스를 생성하세요: mysql -u root -p < ubuntu_mysql_manual.sql"
     exit 1
 fi
 
 # 4. users 테이블 확인
 echo "[4/6] users 테이블 확인 중..."
-TABLE_EXISTS=$(mysql -u root -p -e "USE userdb; SHOW TABLES LIKE 'users';" 2>/dev/null | grep -c "users")
+TABLE_EXISTS=$(mysql -u root -p -e "USE user_service; SHOW TABLES LIKE 'users';" 2>/dev/null | grep -c "users")
 if [ $TABLE_EXISTS -eq 1 ]; then
     echo "✅ users 테이블이 존재합니다."
 else
@@ -51,7 +51,7 @@ fi
 
 # 5. 데이터 확인
 echo "[5/6] 데이터 확인 중..."
-USER_COUNT=$(mysql -u root -p -e "USE userdb; SELECT COUNT(*) FROM users;" 2>/dev/null | tail -n 1)
+USER_COUNT=$(mysql -u root -p -e "USE user_service; SELECT COUNT(*) FROM users;" 2>/dev/null | tail -n 1)
 if [ $USER_COUNT -gt 0 ]; then
     echo "✅ users 테이블에 $USER_COUNT 개의 데이터가 있습니다."
 else
@@ -60,7 +60,7 @@ fi
 
 # 6. JSON 데이터 확인
 echo "[6/6] JSON 데이터 확인 중..."
-JSON_DATA=$(mysql -u root -p -e "USE userdb; SELECT JSON_EXTRACT(preferred_regions, '\$[0].cityName') FROM users LIMIT 1;" 2>/dev/null | tail -n 1)
+JSON_DATA=$(mysql -u root -p -e "USE user_service; SELECT JSON_EXTRACT(preferred_regions, '\$[0].cityName') FROM users LIMIT 1;" 2>/dev/null | tail -n 1)
 if [ ! -z "$JSON_DATA" ] && [ "$JSON_DATA" != "NULL" ]; then
     echo "✅ JSON 데이터가 정상적으로 저장되어 있습니다."
 else
@@ -75,13 +75,13 @@ echo
 echo "MySQL 연결 정보:"
 echo "- 호스트: localhost"
 echo "- 포트: 3306"
-echo "- 데이터베이스: userdb"
+echo "- 데이터베이스: user_service"
 echo "- 사용자: root"
 echo
 echo "Spring Boot application.yml 설정:"
 echo "spring:"
 echo "  datasource:"
-echo "    url: jdbc:mysql://localhost:3306/userdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+echo "    url: jdbc:mysql://localhost:3306/user_service?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
 echo "    username: root"
 echo "    password: [MySQL 비밀번호]"
 echo "    driver-class-name: com.mysql.cj.jdbc.Driver"
