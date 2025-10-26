@@ -2,6 +2,7 @@ spring:
   application:
     name: place-service
   
+  # Updated: 2025-10-26 - Security configuration for development mode
   # Jackson Configuration (JSON 직렬화 시간대 설정)
   jackson:
     time-zone: Asia/Seoul
