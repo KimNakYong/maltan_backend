@@ -106,22 +106,51 @@ services:
       timeout: 10s
       retries: 3
 
-  monitoring-service:
-    build:
-      context: ../backend/monitoring-service
-      dockerfile: Dockerfile
-    container_name: monitoring-service
+  # ===========================================
+  # 모니터링 스택 (Prometheus + Grafana)
+  # ===========================================
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
     ports:
-      - "8085:8085"
-    environment:
-      - SERVER_PORT=8085
+      - "9090:9090"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock  # Docker 소켓 마운트
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
     networks:
       - maltan-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8085/api/monitoring/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"  # 3000은 프론트엔드가 사용 중이므로 3001로 변경
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -141,13 +170,11 @@ services:
       - PLACE_SERVICE_URL=http://place-service:8082
       - RECOMMENDATION_SERVICE_URL=http://recommendation-service:8083
       - COMMUNITY_SERVICE_URL=http://community-service:8084
-      - MONITORING_SERVICE_URL=http://monitoring-service:8085
     depends_on:
       - user-service
       - place-service
       - recommendation-service
       - community-service
-      - monitoring-service
     networks:
       - maltan-network
     restart: unless-stopped
@@ -169,3 +196,5 @@ networks:
 
 volumes:
   place_uploads:
+  prometheus_data:
+  grafana_data:
