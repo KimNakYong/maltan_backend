@@ -6,16 +6,16 @@ services:
     container_name: user-service-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: user_service
-      MYSQL_USER: user_service
-      MYSQL_PASSWORD: user_service_password
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 1234
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./01_create_database.sql:/docker-entrypoint-initdb.d/01_create_database.sql
-      - ./04_docker_setup.sql:/docker-entrypoint-initdb.d/04_docker_setup.sql
+      - ./create_unified_userdb.sql:/docker-entrypoint-initdb.d/04_create_unified_userdb.sql
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - user-service-network
@@ -28,7 +28,7 @@ services:
       PMA_HOST: mysql
       PMA_PORT: 3306
       PMA_USER: root
-      PMA_PASSWORD: rootpassword
+      PMA_PASSWORD: 1234
     ports:
       - "8080:80"
     depends_on:
