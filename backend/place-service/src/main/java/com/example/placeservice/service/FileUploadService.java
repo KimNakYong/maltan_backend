@@ -209,6 +209,7 @@ public class FileUploadService {
             Path targetPath = Paths.get(uploadDir, filePath);
             long finalFileSize;
             String finalContentType = file.getContentType();
+            String finalFilePath = filePath; // 최종 저장 경로
             
             try {
                 if (enableCompression && isImageFile(file)) {
@@ -216,19 +217,24 @@ public class FileUploadService {
                     BufferedImage originalImage = ImageIO.read(file.getInputStream());
                     
                     if (originalImage != null) {
+                        // JPG 확장자로 변경
+                        String jpgFilePath = filePath.replaceAll("\\.(png|jpeg|gif|webp)$", ".jpg");
+                        Path jpgTargetPath = Paths.get(uploadDir, jpgFilePath);
+                        
                         // 압축된 이미지 저장
                         Thumbnails.of(originalImage)
                             .size(maxImageWidth, maxImageHeight)
                             .outputQuality(imageQuality)
                             .outputFormat("jpg")
-                            .toFile(targetPath.toFile());
+                            .toFile(jpgTargetPath.toFile());
                         
-                        finalFileSize = Files.size(targetPath);
+                        finalFileSize = Files.size(jpgTargetPath);
                         finalContentType = "image/jpeg";
+                        finalFilePath = jpgFilePath;
                         
                         // 썸네일 생성
                         try {
-                            createThumbnail(originalImage, filePath);
+                            createThumbnail(originalImage, jpgFilePath);
                         } catch (Exception e) {
                             System.err.println("썸네일 생성 실패: " + e.getMessage());
                         }
@@ -254,7 +260,7 @@ public class FileUploadService {
             Photo photo = new Photo(
                 file.getOriginalFilename(),
                 storedName,
-                filePath,
+                finalFilePath, // 압축 시 .jpg 확장자로 변경된 경로 사용
                 finalFileSize,
                 finalContentType,
                 uploadedBy
