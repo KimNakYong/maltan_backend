@@ -57,8 +57,13 @@ public class WebConfig implements WebMvcConfigurer {
         log.info("Resource Location: {}", resourceLocation);
         log.info("=====================================");
         
+        // 우선순위를 높이기 위해 order 설정
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(resourceLocation)
-                .setCachePeriod(0); // 개발 환경: 캐시 비활성화
+                .setCachePeriod(0) // 개발 환경: 캐시 비활성화
+                .resourceChain(false); // 리소스 체인 비활성화 (더 빠른 응답)
+        
+        // 기본 정적 리소스 핸들러는 나중에 처리되도록 설정
+        registry.setOrder(1);
     }
 }
