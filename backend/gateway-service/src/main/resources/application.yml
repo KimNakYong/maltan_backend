@@ -73,6 +73,12 @@ spring:
           uri: ${PLACE_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/reviews/**
+        
+        # Place Service - Static Files (Uploads)
+        - id: place-service-uploads
+          uri: ${PLACE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/uploads/**
 
 # Actuator 설정
 management:
