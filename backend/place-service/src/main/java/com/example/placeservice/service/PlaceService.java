@@ -225,7 +225,7 @@ public class PlaceService {
         }
         
         return places.stream()
-                .map(PlaceDto::new)
+                .map(place -> new PlaceDto(place, true)) // photos 포함
                 .collect(Collectors.toList());
     }
 

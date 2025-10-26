@@ -41,6 +41,7 @@ public class PhotoDto {
         this.originalName = photo.getOriginalName();
         this.storedName = photo.getStoredName();
         this.filePath = photo.getFilePath();
+        this.fileUrl = "/uploads/" + photo.getFilePath(); // 자동으로 fileUrl 생성
         this.fileSize = photo.getFileSize();
         this.contentType = photo.getContentType();
         this.isMain = photo.getIsMain();
