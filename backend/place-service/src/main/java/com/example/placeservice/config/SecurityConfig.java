@@ -1,5 +1,6 @@
 package com.example.placeservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +21,21 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
+    @Value("${app.cors.allowed-methods}")
+    private String allowedMethods;
+
+    @Value("${app.cors.allowed-headers}")
+    private String allowedHeaders;
+
+    @Value("${app.cors.allow-credentials}")
+    private boolean allowCredentials;
+
+    @Value("${app.cors.max-age}")
+    private long maxAge;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -58,20 +74,20 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 모든 Origin 허용
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // 허용할 Origin 설정
+        configuration.setAllowedOriginPatterns(allowedOrigins);
         
-        // 모든 HTTP 메서드 허용
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        // 허용할 HTTP 메서드 설정
+        configuration.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
         
-        // 모든 헤더 허용
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        // 허용할 헤더 설정
+        configuration.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
         
-        // 자격 증명 허용
-        configuration.setAllowCredentials(true);
+        // 자격 증명 허용 여부
+        configuration.setAllowCredentials(allowCredentials);
         
-        // preflight 요청 캐시 시간 (1시간)
-        configuration.setMaxAge(3600L);
+        // preflight 요청 캐시 시간
+        configuration.setMaxAge(maxAge);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
