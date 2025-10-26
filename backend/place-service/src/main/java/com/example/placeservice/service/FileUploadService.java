@@ -101,6 +101,15 @@ public class FileUploadService {
      * 장소 사진 업로드
      */
     public List<PhotoDto> uploadPlacePhotos(MultipartFile[] files, Long placeId, Long uploadedBy) throws IOException {
+        // 장소별 이미지 개수 제한 확인
+        long currentPhotoCount = photoRepository.countByPlaceId(placeId);
+        if (currentPhotoCount + files.length > maxPhotosPerPlace) {
+            throw new IllegalArgumentException(
+                String.format("장소당 최대 %d개의 사진만 업로드 가능합니다. (현재: %d개)", 
+                    maxPhotosPerPlace, currentPhotoCount)
+            );
+        }
+        
         List<PhotoDto> uploadedPhotos = uploadFiles(files, uploadedBy);
         
         // 장소 ID 설정 및 정렬 순서 설정

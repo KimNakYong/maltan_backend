@@ -1,7 +1,9 @@
 package com.example.placeservice.controller;
 
 import com.example.placeservice.dto.ApiResponse;
+import com.example.placeservice.dto.PhotoDto;
 import com.example.placeservice.dto.PlaceDto;
+import com.example.placeservice.service.FileUploadService;
 import com.example.placeservice.service.PlaceService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -26,6 +29,9 @@ public class PlaceController {
 
     @Autowired
     private PlaceService placeService;
+
+    @Autowired
+    private FileUploadService fileUploadService;
 
     /**
      * 모든 활성화된 장소 조회 (페이징)
@@ -374,6 +380,59 @@ public class PlaceController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("전체 장소 개수 조회 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 장소 사진 업로드
+     */
+    @PostMapping("/{placeId}/photos")
+    public ResponseEntity<ApiResponse<PhotoDto>> uploadPlacePhoto(
+            @PathVariable Long placeId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            // uploadedBy는 현재 인증된 사용자 ID로 설정해야 하지만, 
+            // 임시로 1L을 사용 (추후 Spring Security에서 가져오도록 수정)
+            Long uploadedBy = 1L;
+            
+            // 단일 파일을 배열로 변환
+            MultipartFile[] files = new MultipartFile[] { file };
+            List<PhotoDto> uploadedPhotos = fileUploadService.uploadPlacePhotos(files, placeId, uploadedBy);
+            
+            if (!uploadedPhotos.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.success("장소 사진 업로드 성공", uploadedPhotos.get(0)));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error("사진 업로드에 실패했습니다"));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("장소 사진 업로드 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 장소 사진 삭제
+     */
+    @DeleteMapping("/{placeId}/photos/{photoId}")
+    public ResponseEntity<ApiResponse<Void>> deletePlacePhoto(
+            @PathVariable Long placeId,
+            @PathVariable Long photoId) {
+        try {
+            boolean deleted = fileUploadService.deleteFile(photoId);
+            if (deleted) {
+                return ResponseEntity.ok(ApiResponse.success("사진 삭제 성공"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("사진을 찾을 수 없습니다: " + photoId));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사진 삭제 실패: " + e.getMessage()));
         }
     }
 }
