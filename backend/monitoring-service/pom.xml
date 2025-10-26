@@ -57,12 +57,19 @@
             <version>3.3.4</version>
         </dependency>
         
-        <!-- JAX-RS API and Jersey implementation (required by docker-java) -->
+        <!-- JAX-RS API (both javax and jakarta for compatibility) -->
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.1.1</version>
+        </dependency>
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
             <version>3.1.0</version>
         </dependency>
+        
+        <!-- Jersey implementation (required by docker-java) -->
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
