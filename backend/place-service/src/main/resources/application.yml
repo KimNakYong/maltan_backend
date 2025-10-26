@@ -37,8 +37,8 @@ spring:
   # 파일 업로드 설정
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 50MB
+      max-file-size: 5MB
+      max-request-size: 25MB
       enabled: true
   
   # Security 설정
@@ -69,8 +69,16 @@ logging:
 app:
   upload:
     dir: ${UPLOAD_DIR:uploads}
-    max-file-size: ${MAX_FILE_SIZE:10485760} # 10MB
+    max-file-size: ${MAX_FILE_SIZE:5242880} # 5MB (10MB에서 줄임)
     allowed-types: image/jpeg,image/jpg,image/png,image/gif,image/webp
+    max-photos-per-place: 10 # 장소당 최대 사진 개수
+    enable-compression: true # 이미지 압축 활성화
+    image:
+      max-width: 1920 # 이미지 최대 너비
+      max-height: 1080 # 이미지 최대 높이
+      quality: 0.8 # 이미지 품질 (0.0 ~ 1.0)
+    thumbnail:
+      size: 300 # 썸네일 크기 (정사각형)
   
   cors:
     allowed-origins: 
@@ -133,6 +141,16 @@ server:
 app:
   upload:
     dir: /app/uploads
+    max-file-size: 5242880 # 5MB
+    allowed-types: image/jpeg,image/jpg,image/png,image/gif,image/webp
+    max-photos-per-place: 10
+    enable-compression: true
+    image:
+      max-width: 1920
+      max-height: 1080
+      quality: 0.8
+    thumbnail:
+      size: 300
   
   cors:
     allowed-origins: 

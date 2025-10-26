@@ -7,12 +7,15 @@ import com.example.placeservice.entity.Review;
 import com.example.placeservice.repository.PhotoRepository;
 import com.example.placeservice.repository.PlaceRepository;
 import com.example.placeservice.repository.ReviewRepository;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,6 +52,24 @@ public class FileUploadService {
     @Value("${app.upload.allowed-types:image/jpeg,image/jpg,image/png,image/gif,image/webp}")
     private String allowedTypes;
 
+    @Value("${app.upload.max-photos-per-place:10}") // 장소당 최대 사진 개수
+    private int maxPhotosPerPlace;
+
+    @Value("${app.upload.image.max-width:1920}") // 이미지 최대 너비
+    private int maxImageWidth;
+
+    @Value("${app.upload.image.max-height:1080}") // 이미지 최대 높이
+    private int maxImageHeight;
+
+    @Value("${app.upload.image.quality:0.8}") // 이미지 품질 (0.0 ~ 1.0)
+    private double imageQuality;
+
+    @Value("${app.upload.thumbnail.size:300}") // 썸네일 크기
+    private int thumbnailSize;
+
+    @Value("${app.upload.enable-compression:true}") // 압축 활성화 여부
+    private boolean enableCompression;
+
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
 
     /**
@@ -63,17 +84,43 @@ public class FileUploadService {
         // 디렉토리 생성
         createDirectories(filePath);
         
-        // 파일 저장
         Path targetPath = Paths.get(uploadDir, filePath);
-        Files.copy(file.getInputStream(), targetPath);
+        long finalFileSize;
+        
+        if (enableCompression && isImageFile(file)) {
+            // 이미지 압축 및 리사이징
+            BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage != null) {
+                // 압축된 이미지 저장
+                Thumbnails.of(originalImage)
+                    .size(maxImageWidth, maxImageHeight)
+                    .outputQuality(imageQuality)
+                    .outputFormat("jpg")
+                    .toFile(targetPath.toFile());
+                
+                // 실제 저장된 파일 크기
+                finalFileSize = Files.size(targetPath);
+                
+                // 썸네일 생성
+                createThumbnail(originalImage, filePath);
+            } else {
+                // 이미지 읽기 실패 시 원본 저장
+                Files.copy(file.getInputStream(), targetPath);
+                finalFileSize = file.getSize();
+            }
+        } else {
+            // 압축 비활성화 또는 이미지가 아닌 경우 원본 저장
+            Files.copy(file.getInputStream(), targetPath);
+            finalFileSize = file.getSize();
+        }
         
         // Photo 엔티티 생성 및 저장
         Photo photo = new Photo(
             file.getOriginalFilename(),
             storedName,
             filePath,
-            file.getSize(),
-            file.getContentType(),
+            finalFileSize,
+            "image/jpeg", // 압축 후 jpg로 저장
             uploadedBy
         );
         
@@ -309,6 +356,39 @@ public class FileUploadService {
             return Files.size(path);
         } catch (IOException e) {
             return 0;
+        }
+    }
+
+    /**
+     * 이미지 파일인지 확인
+     */
+    private boolean isImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
+    }
+
+    /**
+     * 썸네일 생성
+     */
+    private void createThumbnail(BufferedImage originalImage, String originalPath) {
+        try {
+            // 썸네일 경로 생성 (원본 파일명에 _thumb 추가)
+            String extension = FilenameUtils.getExtension(originalPath);
+            String pathWithoutExtension = originalPath.substring(0, originalPath.lastIndexOf('.'));
+            String thumbPath = pathWithoutExtension + "_thumb." + extension;
+            
+            Path thumbTargetPath = Paths.get(uploadDir, thumbPath);
+            
+            // 썸네일 생성 및 저장
+            Thumbnails.of(originalImage)
+                .size(thumbnailSize, thumbnailSize)
+                .outputQuality(imageQuality)
+                .outputFormat("jpg")
+                .toFile(thumbTargetPath.toFile());
+            
+        } catch (IOException e) {
+            // 썸네일 생성 실패 시 로그만 남기고 계속 진행
+            System.err.println("썸네일 생성 실패: " + e.getMessage());
         }
     }
 }
