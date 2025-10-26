@@ -67,6 +67,12 @@ spring:
           uri: ${PLACE_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/categories/**
+        
+        # Place Service - Reviews
+        - id: place-service-reviews
+          uri: ${PLACE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/reviews/**
 
 # Actuator 설정
 management:
