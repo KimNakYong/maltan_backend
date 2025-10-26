@@ -138,6 +138,7 @@ public class PostService {
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
         post.setCategory(request.getCategory());
+        post.setUpdatedAt(java.time.LocalDateTime.now()); // 수정 시간 갱신
         
         // 모집 정보 업데이트 (모집 게시글인 경우)
         if (post.getIsRecruitment()) {

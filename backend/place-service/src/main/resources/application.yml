@@ -2,9 +2,15 @@ spring:
   application:
     name: place-service
   
+  # Updated: 2025-10-26 - Security configuration for development mode
+  # Jackson Configuration (JSON 직렬화 시간대 설정)
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+  
   # MySQL 데이터베이스 연결 설정 (환경 변수 사용)
   datasource:
-    url: jdbc:mysql://${DB_HOST:10.0.2.15}:${DB_PORT:3306}/${DB_NAME:placedb}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&connectTimeout=10000&socketTimeout=10000
+    url: jdbc:mysql://${DB_HOST:10.0.2.15}:${DB_PORT:3306}/${DB_NAME:placedb}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&connectTimeout=10000&socketTimeout=10000
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -45,8 +51,6 @@ spring:
 # 서버 설정
 server:
   port: ${SERVER_PORT:8082}
-  servlet:
-    context-path: /api
 
 # 로깅 설정
 logging:
@@ -110,9 +114,16 @@ spring:
       on-profile: docker
   
   datasource:
-    url: jdbc:mysql://mysql:3306/placedb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-    username: root
-    password: 1234
+    url: jdbc:mysql://${DB_HOST:10.0.2.15}:${DB_PORT:3306}/placedb?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
 
 server:
   port: 8082
@@ -120,6 +131,17 @@ server:
 app:
   upload:
     dir: /app/uploads
+  
+  cors:
+    allowed-origins: 
+      - http://localhost:3000
+      - http://localhost:8080
+      - https://*.ngrok-free.app
+      - https://8d9e-121-165-215-189.ngrok-free.app
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
 
 logging:
   level:

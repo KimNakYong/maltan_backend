@@ -92,9 +92,15 @@ public class PostController {
     public ResponseEntity<PostResponse> updatePost(
             @PathVariable Long postId,
             @Valid @RequestBody UpdatePostRequest request,
-            @RequestAttribute("userId") Long userId
+            @RequestAttribute(value = "userId", required = false) Long userIdFromAttribute,
+            @RequestParam(required = false) Long userId
     ) {
-        PostDto post = postService.updatePost(postId, request, userId);
+        // 임시: 인증 시스템 구현 전까지 쿼리 파라미터에서 userId 사용
+        Long finalUserId = userIdFromAttribute != null ? userIdFromAttribute : userId;
+        if (finalUserId == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
+        PostDto post = postService.updatePost(postId, request, finalUserId);
         return ResponseEntity.ok(PostResponse.builder().post(post).build());
     }
     

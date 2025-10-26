@@ -270,9 +270,10 @@ public class PlaceController {
     public ResponseEntity<ApiResponse<List<PlaceDto>>> getNearbyPlaces(
             @RequestParam BigDecimal latitude,
             @RequestParam BigDecimal longitude,
-            @RequestParam(defaultValue = "5.0") Double radius) {
+            @RequestParam(defaultValue = "5.0") Double radius,
+            @RequestParam(required = false) Long categoryId) {
         try {
-            List<PlaceDto> places = placeService.getNearbyPlaces(latitude, longitude, radius);
+            List<PlaceDto> places = placeService.getNearbyPlaces(latitude, longitude, radius, categoryId);
             return ResponseEntity.ok(ApiResponse.success("주변 장소 조회 성공", places));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

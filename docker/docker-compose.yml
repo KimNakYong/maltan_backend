@@ -1,6 +1,11 @@
 version: '3.8'
 
 services:
+  # ===========================================
+  # 마이크로서비스들
+  # (DB는 Ubuntu 호스트에서 직접 실행: 10.0.2.15)
+  # ===========================================
+  
   user-service:
     build:
       context: ../backend/user-service
@@ -9,20 +14,20 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8081
-      - DB_HOST=172.17.0.1
+      - DB_HOST=10.0.2.15
       - DB_PORT=3306
-      - DB_NAME=userdb
+      - DB_NAME=user_service
       - DB_USERNAME=root
-      - DB_PASSWORD=1234
+      - DB_PASSWORD=password
     networks:
       - maltan-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/api/user/auth/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
+      start_period: 60s
       retries: 3
 
   place-service:
@@ -33,9 +38,8 @@ services:
     ports:
       - "8082:8082"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8082
-      - DB_HOST=172.17.0.1
+      - DB_HOST=10.0.2.15
       - DB_PORT=3306
       - DB_NAME=placedb
       - DB_USERNAME=root
@@ -47,14 +51,121 @@ services:
     volumes:
       - place_uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+  community-service:
+    build:
+      context: ../backend/community-service
+      dockerfile: Dockerfile
+    container_name: community-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVER_PORT=8083
+      - DB_HOST=10.0.2.15
+      - DB_PORT=5432
+      - DB_NAME=community_db
+      - DB_USERNAME=community_user
+      - DB_PASSWORD=Community@2025!
+      - REDIS_HOST=10.0.2.15
+      - REDIS_PORT=6379
+      - USER_SERVICE_URL=http://10.0.2.15:8081
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  recommendation-service:
+    build:
+      context: ../backend/recommendation-service
+      dockerfile: Dockerfile
+    container_name: recommendation-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SERVER_PORT=8084
+      - DB_HOST=10.0.2.15
+      - DB_PORT=5432
+      - DB_NAME=recommendation_db
+      - DB_USERNAME=recommendation_user
+      - DB_PASSWORD=Recommendation2025
+      - PLACE_SERVICE_URL=http://10.0.2.15:8082
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  monitoring-service:
+    build:
+      context: ../backend/monitoring-service
+      dockerfile: Dockerfile
+    container_name: monitoring-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SERVER_PORT=8085
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker 소켓 마운트
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/api/monitoring/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gateway-service:
+    build:
+      context: ../backend/gateway-service
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - REDIS_HOST=10.0.2.15
+      - REDIS_PORT=6379
+      - USER_SERVICE_URL=http://user-service:8081
+      - PLACE_SERVICE_URL=http://place-service:8082
+      - RECOMMENDATION_SERVICE_URL=http://recommendation-service:8083
+      - COMMUNITY_SERVICE_URL=http://community-service:8084
+      - MONITORING_SERVICE_URL=http://monitoring-service:8085
+    depends_on:
+      - user-service
+      - place-service
+      - recommendation-service
+      - community-service
+      - monitoring-service
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ===========================================
+# 네트워크 및 볼륨
+# ===========================================
 networks:
   maltan-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
 
 volumes:
   place_uploads:

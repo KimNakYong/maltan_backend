@@ -13,9 +13,14 @@ spring:
   application:
     name: user-service
   
+  # Jackson Configuration (JSON 직렬화 시간대 설정)
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+  
   # MySQL 데이터베이스 연결 설정 (환경 변수 사용)
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:userdb}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&connectTimeout=10000&socketTimeout=10000
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:userdb}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&connectTimeout=10000&socketTimeout=10000
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
