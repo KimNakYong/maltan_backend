@@ -86,32 +86,51 @@ public class FileUploadService {
         
         Path targetPath = Paths.get(uploadDir, filePath);
         long finalFileSize;
+        String finalContentType = file.getContentType();
         
-        if (enableCompression && isImageFile(file)) {
-            // 이미지 압축 및 리사이징
-            BufferedImage originalImage = ImageIO.read(file.getInputStream());
-            if (originalImage != null) {
-                // 압축된 이미지 저장
-                Thumbnails.of(originalImage)
-                    .size(maxImageWidth, maxImageHeight)
-                    .outputQuality(imageQuality)
-                    .outputFormat("jpg")
-                    .toFile(targetPath.toFile());
+        try {
+            if (enableCompression && isImageFile(file)) {
+                // 이미지 압축 및 리사이징
+                BufferedImage originalImage = ImageIO.read(file.getInputStream());
                 
-                // 실제 저장된 파일 크기
-                finalFileSize = Files.size(targetPath);
-                
-                // 썸네일 생성
-                createThumbnail(originalImage, filePath);
+                if (originalImage != null) {
+                    // 압축된 이미지 저장
+                    Thumbnails.of(originalImage)
+                        .size(maxImageWidth, maxImageHeight)
+                        .outputQuality(imageQuality)
+                        .outputFormat("jpg")
+                        .toFile(targetPath.toFile());
+                    
+                    // 실제 저장된 파일 크기
+                    finalFileSize = Files.size(targetPath);
+                    finalContentType = "image/jpeg";
+                    
+                    // 썸네일 생성
+                    try {
+                        createThumbnail(originalImage, filePath);
+                    } catch (Exception e) {
+                        // 썸네일 생성 실패해도 계속 진행
+                        System.err.println("썸네일 생성 실패: " + e.getMessage());
+                    }
+                } else {
+                    // 이미지 읽기 실패 시 원본 저장
+                    byte[] fileBytes = file.getBytes();
+                    Files.write(targetPath, fileBytes);
+                    finalFileSize = file.getSize();
+                }
             } else {
-                // 이미지 읽기 실패 시 원본 저장
-                Files.copy(file.getInputStream(), targetPath);
+                // 압축 비활성화 또는 이미지가 아닌 경우 원본 저장
+                byte[] fileBytes = file.getBytes();
+                Files.write(targetPath, fileBytes);
                 finalFileSize = file.getSize();
             }
-        } else {
-            // 압축 비활성화 또는 이미지가 아닌 경우 원본 저장
-            Files.copy(file.getInputStream(), targetPath);
+        } catch (Exception e) {
+            // 압축 실패 시 원본 저장
+            System.err.println("이미지 압축 실패, 원본 저장: " + e.getMessage());
+            byte[] fileBytes = file.getBytes();
+            Files.write(targetPath, fileBytes);
             finalFileSize = file.getSize();
+            finalContentType = file.getContentType();
         }
         
         // Photo 엔티티 생성 및 저장
@@ -120,7 +139,7 @@ public class FileUploadService {
             storedName,
             filePath,
             finalFileSize,
-            "image/jpeg", // 압축 후 jpg로 저장
+            finalContentType,
             uploadedBy
         );
         
