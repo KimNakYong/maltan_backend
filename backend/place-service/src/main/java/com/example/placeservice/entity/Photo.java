@@ -37,6 +37,9 @@ public class Photo {
     @Column(name = "content_type", length = 100)
     private String contentType;
 
+    @Column(name = "mime_type", length = 100)
+    private String mimeType;
+
     @Column(name = "is_main")
     private Boolean isMain = false;
 
@@ -69,6 +72,7 @@ public class Photo {
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.contentType = contentType;
+        this.mimeType = contentType; // mime_type은 content_type과 동일하게 설정
         this.uploadedBy = uploadedBy;
     }
 
@@ -136,6 +140,14 @@ public class Photo {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 
     public Boolean getIsMain() {
