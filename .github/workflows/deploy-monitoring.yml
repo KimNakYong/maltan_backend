@@ -26,7 +26,7 @@ jobs:
       
       - name: Build with Maven
         working-directory: ./backend/monitoring-service
-        run: ./mvnw clean package -DskipTests
+        run: mvn clean package -DskipTests
       
       - name: Deploy with Docker Compose
         run: |
