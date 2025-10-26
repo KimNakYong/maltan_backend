@@ -43,6 +43,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // ID로 조회 (삭제되지 않은 것만)
     Optional<Post> findByIdAndIsDeletedFalse(Long id);
     
+    // Place ID로 게시글 조회 (삭제되지 않은 것만, 최신순)
+    Page<Post> findByIsDeletedFalseAndPlaceIdOrderByCreatedAtDesc(Long placeId, Pageable pageable);
+    
     // 조회수 증가 (Batch Update)
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = :viewCount WHERE p.id = :postId")

@@ -1,7 +1,9 @@
 package com.example.placeservice.controller;
 
 import com.example.placeservice.dto.ApiResponse;
+import com.example.placeservice.dto.PhotoDto;
 import com.example.placeservice.dto.PlaceDto;
+import com.example.placeservice.service.FileUploadService;
 import com.example.placeservice.service.PlaceService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +14,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
@@ -26,6 +31,9 @@ public class PlaceController {
 
     @Autowired
     private PlaceService placeService;
+
+    @Autowired
+    private FileUploadService fileUploadService;
 
     /**
      * 모든 활성화된 장소 조회 (페이징)
@@ -126,12 +134,87 @@ public class PlaceController {
     }
 
     /**
-     * 장소 생성
+     * 장소 생성 (JSON만)
      */
-    @PostMapping
+    @PostMapping(consumes = "application/json")
     public ResponseEntity<ApiResponse<PlaceDto>> createPlace(@Valid @RequestBody PlaceDto placeDto) {
         try {
             PlaceDto createdPlace = placeService.createPlace(placeDto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("장소 생성 성공", createdPlace));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("장소 생성 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 장소 생성 (이미지 포함)
+     */
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<PlaceDto>> createPlaceWithImage(
+            @RequestParam("name") String name,
+            @RequestParam("address") String address,
+            @RequestParam("latitude") BigDecimal latitude,
+            @RequestParam("longitude") BigDecimal longitude,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "detailedAddress", required = false) String detailedAddress,
+            @RequestParam(value = "phoneNumber", required = false) String phoneNumber,
+            @RequestParam(value = "website", required = false) String website,
+            @RequestParam(value = "openingTime", required = false) String openingTime,
+            @RequestParam(value = "closingTime", required = false) String closingTime,
+            @RequestParam(value = "closedDays", required = false) String closedDays,
+            @RequestParam(value = "isOpen24h", required = false, defaultValue = "false") Boolean isOpen24h,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+        try {
+            // PlaceDto 생성
+            PlaceDto placeDto = new PlaceDto();
+            placeDto.setName(name);
+            placeDto.setAddress(address);
+            placeDto.setLatitude(latitude);
+            placeDto.setLongitude(longitude);
+            placeDto.setCategoryId(categoryId);
+            placeDto.setDescription(description);
+            placeDto.setDetailedAddress(detailedAddress);
+            placeDto.setPhoneNumber(phoneNumber);
+            placeDto.setWebsite(website);
+            
+            // LocalTime 변환
+            if (openingTime != null && !openingTime.isEmpty()) {
+                try {
+                    placeDto.setOpeningTime(LocalTime.parse(openingTime));
+                } catch (DateTimeParseException e) {
+                    // 파싱 실패 시 무시
+                }
+            }
+            if (closingTime != null && !closingTime.isEmpty()) {
+                try {
+                    placeDto.setClosingTime(LocalTime.parse(closingTime));
+                } catch (DateTimeParseException e) {
+                    // 파싱 실패 시 무시
+                }
+            }
+            
+            placeDto.setClosedDays(closedDays);
+            placeDto.setIsOpen24h(isOpen24h);
+            placeDto.setCreatedBy(1L); // 임시
+            
+            // 장소 생성
+            PlaceDto createdPlace = placeService.createPlace(placeDto);
+            
+            // 이미지가 있으면 업로드
+            if (file != null && !file.isEmpty()) {
+                MultipartFile[] files = new MultipartFile[] { file };
+                fileUploadService.uploadPlacePhotos(files, createdPlace.getId(), 1L);
+                
+                // 업데이트된 장소 정보 다시 조회 (이미지 포함)
+                createdPlace = placeService.getPlaceById(createdPlace.getId()).orElse(createdPlace);
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("장소 생성 성공", createdPlace));
         } catch (RuntimeException e) {
@@ -374,6 +457,59 @@ public class PlaceController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("전체 장소 개수 조회 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 장소 사진 업로드
+     */
+    @PostMapping("/{placeId}/photos")
+    public ResponseEntity<ApiResponse<PhotoDto>> uploadPlacePhoto(
+            @PathVariable Long placeId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            // uploadedBy는 현재 인증된 사용자 ID로 설정해야 하지만, 
+            // 임시로 1L을 사용 (추후 Spring Security에서 가져오도록 수정)
+            Long uploadedBy = 1L;
+            
+            // 단일 파일을 배열로 변환
+            MultipartFile[] files = new MultipartFile[] { file };
+            List<PhotoDto> uploadedPhotos = fileUploadService.uploadPlacePhotos(files, placeId, uploadedBy);
+            
+            if (!uploadedPhotos.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.success("장소 사진 업로드 성공", uploadedPhotos.get(0)));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error("사진 업로드에 실패했습니다"));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("장소 사진 업로드 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 장소 사진 삭제
+     */
+    @DeleteMapping("/{placeId}/photos/{photoId}")
+    public ResponseEntity<ApiResponse<Void>> deletePlacePhoto(
+            @PathVariable Long placeId,
+            @PathVariable Long photoId) {
+        try {
+            boolean deleted = fileUploadService.deleteFile(photoId);
+            if (deleted) {
+                return ResponseEntity.ok(ApiResponse.success("사진 삭제 성공"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("사진을 찾을 수 없습니다: " + photoId));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사진 삭제 실패: " + e.getMessage()));
         }
     }
 }

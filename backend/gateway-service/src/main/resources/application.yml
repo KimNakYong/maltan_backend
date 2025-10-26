@@ -16,10 +16,12 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins:
+            allowedOriginPatterns:
               - "http://localhost:3000"
               - "http://10.0.2.15:3000"
               - "https://*.ngrok-free.dev"
+              - "https://*.ngrok-free.app"
+              - "https://*.ngrok.io"
             allowedMethods:
               - GET
               - POST
@@ -63,6 +65,18 @@ spring:
           uri: ${PLACE_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/categories/**
+        
+        # Place Service - Reviews
+        - id: place-service-reviews
+          uri: ${PLACE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/reviews/**
+        
+        # Place Service - Static Files (Uploads)
+        - id: place-service-uploads
+          uri: ${PLACE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/uploads/**
 
 # Actuator 설정
 management:

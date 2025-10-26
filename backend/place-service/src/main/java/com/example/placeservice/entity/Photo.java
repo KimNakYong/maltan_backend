@@ -25,6 +25,9 @@ public class Photo {
     @Column(name = "stored_name", nullable = false, length = 255)
     private String storedName;
 
+    @Column(name = "file_name", length = 255)
+    private String fileName;
+
     @Column(name = "file_path", nullable = false, length = 500)
     private String filePath;
 
@@ -33,6 +36,9 @@ public class Photo {
 
     @Column(name = "content_type", length = 100)
     private String contentType;
+
+    @Column(name = "mime_type", length = 100)
+    private String mimeType;
 
     @Column(name = "is_main")
     private Boolean isMain = false;
@@ -62,9 +68,11 @@ public class Photo {
     public Photo(String originalName, String storedName, String filePath, Long fileSize, String contentType, Long uploadedBy) {
         this.originalName = originalName;
         this.storedName = storedName;
+        this.fileName = storedName; // file_name은 stored_name과 동일하게 설정
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.contentType = contentType;
+        this.mimeType = contentType; // mime_type은 content_type과 동일하게 설정
         this.uploadedBy = uploadedBy;
     }
 
@@ -102,6 +110,14 @@ public class Photo {
         this.storedName = storedName;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     public String getFilePath() {
         return filePath;
     }
@@ -124,6 +140,14 @@ public class Photo {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 
     public Boolean getIsMain() {

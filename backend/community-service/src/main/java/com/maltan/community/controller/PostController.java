@@ -56,6 +56,21 @@ public class PostController {
     }
     
     /**
+     * Place ID로 게시글 목록 조회
+     */
+    @GetMapping("/by-place/{placeId}")
+    public ResponseEntity<PostListResponse> getPostsByPlaceId(
+            @PathVariable Long placeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestAttribute(value = "userId", required = false) Long userId
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        PostListResponse response = postService.getPostsByPlaceId(placeId, pageable, userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
      * 게시글 상세 조회
      */
     @GetMapping("/{postId}")
