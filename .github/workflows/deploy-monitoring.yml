@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - 'backend/monitoring-service/**'
+      - 'docker/docker-compose.yml'
       - '.github/workflows/deploy-monitoring.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
       - name: Checkout code
@@ -21,58 +23,36 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'maven'
       
       - name: Build with Maven
         working-directory: ./backend/monitoring-service
-        run: mvn clean package -DskipTests
+        run: ./mvnw clean package -DskipTests
       
-      - name: Build Docker image
-        working-directory: ./backend/monitoring-service
-        run: docker build -t monitoring-service:latest .
-      
-      - name: Save Docker image
-        run: docker save monitoring-service:latest | gzip > monitoring-service.tar.gz
-      
-      - name: Copy files to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "monitoring-service.tar.gz"
-          target: "/tmp"
-      
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            # Docker 이미지 로드
-            cd /tmp
-            docker load < monitoring-service.tar.gz
-            rm monitoring-service.tar.gz
-            
-            # 기존 컨테이너 중지 및 제거
-            docker stop monitoring-service || true
-            docker rm monitoring-service || true
-            
-            # 새 컨테이너 실행
-            docker run -d \
-              --name monitoring-service \
-              --network maltan-network \
-              -p 8085:8085 \
-              -e SPRING_PROFILES_ACTIVE=docker \
-              -e SERVER_PORT=8085 \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              --restart unless-stopped \
-              monitoring-service:latest
-            
-            # 컨테이너 상태 확인
-            sleep 5
-            docker logs monitoring-service --tail 50
-            
-            echo "✅ Monitoring Service deployed successfully!"
+      - name: Deploy with Docker Compose
+        run: |
+          cd docker
+          
+          # monitoring-service 이미지 재빌드
+          docker-compose build monitoring-service
+          
+          # monitoring-service만 재시작 (기존 서비스 영향 없음)
+          docker-compose up -d --no-deps monitoring-service
+          
+          # gateway-service 재시작 (새 라우팅 적용)
+          docker-compose restart gateway-service
+          
+          echo "Waiting for services to start..."
+          sleep 10
+          
+          # 헬스 체크
+          echo "=== Monitoring Service Status ==="
+          docker-compose ps monitoring-service
+          
+          echo "=== Monitoring Service Logs ==="
+          docker-compose logs --tail=50 monitoring-service
+          
+          echo "=== Gateway Service Logs ==="
+          docker-compose logs --tail=20 gateway-service
+          
+          echo "✅ Monitoring Service deployed successfully!"
 
