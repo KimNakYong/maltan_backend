@@ -44,6 +44,9 @@ public class CreatePostRequest {
     @Size(max = 200, message = "활동 장소는 200자를 초과할 수 없습니다.")
     private String eventLocation;
     
+    // 장소 정보 (Place DB와 연동) - 선택사항
+    private Long placeId;
+    
     // 위치 정보 (Google Maps) - 선택사항
     private Double latitude;
     private Double longitude;

@@ -34,6 +34,9 @@ public class PostDto {
     private LocalDateTime eventDate;
     private String eventLocation;
     
+    // 장소 정보 (Place DB와 연동)
+    private Long placeId;
+    
     // 위치 정보 (Google Maps)
     private Double latitude;
     private Double longitude;

@@ -79,6 +79,28 @@ public class PostService {
     }
     
     /**
+     * Place ID로 게시글 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public PostListResponse getPostsByPlaceId(Long placeId, Pageable pageable, Long currentUserId) {
+        Page<Post> postsPage = postRepository.findByIsDeletedFalseAndPlaceIdOrderByCreatedAtDesc(placeId, pageable);
+        
+        List<PostDto> postDtos = postsPage.getContent().stream()
+            .map(post -> convertToDto(post, currentUserId))
+            .collect(Collectors.toList());
+        
+        return PostListResponse.builder()
+            .content(postDtos)
+            .totalElements(postsPage.getTotalElements())
+            .totalPages(postsPage.getTotalPages())
+            .currentPage(postsPage.getNumber())
+            .pageSize(postsPage.getSize())
+            .hasNext(postsPage.hasNext())
+            .hasPrevious(postsPage.hasPrevious())
+            .build();
+    }
+    
+    /**
      * 게시글 작성
      */
     @Transactional
@@ -96,6 +118,7 @@ public class PostService {
             .recruitmentDeadline(request.getRecruitmentDeadline())
             .eventDate(request.getEventDate())
             .eventLocation(request.getEventLocation())
+            .placeId(request.getPlaceId())
             .latitude(request.getLatitude())
             .longitude(request.getLongitude())
             .address(request.getAddress())
@@ -237,6 +260,7 @@ public class PostService {
             .recruitmentDeadline(post.getRecruitmentDeadline())
             .eventDate(post.getEventDate())
             .eventLocation(post.getEventLocation())
+            .placeId(post.getPlaceId())
             .latitude(post.getLatitude())
             .longitude(post.getLongitude())
             .address(post.getAddress())

@@ -15,7 +15,8 @@ import java.util.List;
     @Index(name = "idx_posts_category", columnList = "category"),
     @Index(name = "idx_posts_region", columnList = "region_si, region_gu, region_dong"),
     @Index(name = "idx_posts_recruitment", columnList = "is_recruitment, recruitment_deadline"),
-    @Index(name = "idx_posts_created_at", columnList = "created_at")
+    @Index(name = "idx_posts_created_at", columnList = "created_at"),
+    @Index(name = "idx_posts_place_id", columnList = "place_id")
 })
 @Getter
 @Setter
@@ -70,6 +71,10 @@ public class Post {
     
     @Column(name = "event_location", length = 200)
     private String eventLocation;
+    
+    // 장소 정보 (Place DB와 연동)
+    @Column(name = "place_id")
+    private Long placeId;
     
     // 위치 정보 (Google Maps)
     @Column(name = "latitude")
