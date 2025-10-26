@@ -65,24 +65,22 @@ spring:
           uri: ${PLACE_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/categories/**
-        
-        # Monitoring Service (미구현 시 User Service로 임시 라우팅)
-        - id: monitoring-service
-          uri: ${MONITORING_SERVICE_URL:http://localhost:8085}
-          predicates:
-            - Path=/api/monitoring/**
 
 # Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus,metrics
   endpoint:
     health:
       show-details: always
     gateway:
       enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 # 로깅 설정
 logging:
