@@ -164,31 +164,39 @@ public class FileUploadService {
     }
 
     /**
-     * 장소 사진 업로드
+     * 장소 사진 업로드 (기존 사진 모두 삭제 후 최신 1개만 유지)
      */
     public List<PhotoDto> uploadPlacePhotos(MultipartFile[] files, Long placeId, Long uploadedBy) throws IOException {
-        // 장소별 이미지 개수 제한 확인
-        long currentPhotoCount = photoRepository.countByPlaceId(placeId);
-        if (currentPhotoCount + files.length > maxPhotosPerPlace) {
-            throw new IllegalArgumentException(
-                String.format("장소당 최대 %d개의 사진만 업로드 가능합니다. (현재: %d개)", 
-                    maxPhotosPerPlace, currentPhotoCount)
-            );
-        }
-        
         // 장소 조회
         Place place = placeRepository.findById(placeId).orElseThrow(() -> 
             new RuntimeException("장소를 찾을 수 없습니다: " + placeId));
         
-        List<PhotoDto> uploadedPhotos = new ArrayList<>();
-        boolean isFirstPhoto = !photoRepository.findByPlaceIdAndIsMainTrue(placeId).isPresent();
-        
-        // 각 파일 처리
-        for (int i = 0; i < files.length; i++) {
-            MultipartFile file = files[i];
-            if (file.isEmpty()) {
-                continue;
+        // 기존 사진 모두 삭제
+        List<Photo> existingPhotos = photoRepository.findByPlaceIdOrderBySortOrderAscCreatedAtDesc(placeId);
+        for (Photo existingPhoto : existingPhotos) {
+            // 물리적 파일 삭제
+            try {
+                Path filePath = Paths.get(uploadDir, existingPhoto.getFilePath());
+                Files.deleteIfExists(filePath);
+                
+                // 썸네일도 삭제
+                String thumbPath = existingPhoto.getFilePath().replace(".jpg", "_thumb.jpg")
+                        .replace(".png", "_thumb.jpg")
+                        .replace(".jpeg", "_thumb.jpg");
+                Path thumbFilePath = Paths.get(uploadDir, thumbPath);
+                Files.deleteIfExists(thumbFilePath);
+            } catch (Exception e) {
+                System.err.println("기존 파일 삭제 실패: " + e.getMessage());
             }
+        }
+        // DB에서 삭제
+        photoRepository.deleteAll(existingPhotos);
+        
+        List<PhotoDto> uploadedPhotos = new ArrayList<>();
+        
+        // 첫 번째 파일만 처리 (최신 1개만 유지)
+        MultipartFile file = files.length > 0 ? files[0] : null;
+        if (file != null && !file.isEmpty()) {
             
             validateFile(file);
             
@@ -255,13 +263,11 @@ public class FileUploadService {
             // 장소 설정
             photo.setPlace(place);
             
-            // 첫 번째 사진을 메인으로 설정 (기존 메인 사진이 없는 경우)
-            if (i == 0 && isFirstPhoto) {
-                photo.setIsMain(true);
-            }
+            // 메인 사진으로 설정
+            photo.setIsMain(true);
             
-            // 정렬 순서 설정
-            photo.setSortOrder(photoRepository.findNextSortOrderByPlaceId(placeId));
+            // 정렬 순서 1로 설정 (첫 번째이자 유일한 사진)
+            photo.setSortOrder(1);
             
             // DB 저장
             Photo savedPhoto = photoRepository.save(photo);
