@@ -214,9 +214,17 @@ public class PlaceService {
      * 위치 기반 주변 장소 검색
      */
     @Transactional(readOnly = true)
-    public List<PlaceDto> getNearbyPlaces(BigDecimal latitude, BigDecimal longitude, Double radius) {
-        return placeRepository.findNearbyPlaces(latitude, longitude, radius != null ? radius : 5.0)
-                .stream()
+    public List<PlaceDto> getNearbyPlaces(BigDecimal latitude, BigDecimal longitude, Double radius, Long categoryId) {
+        List<Place> places = placeRepository.findNearbyPlaces(latitude, longitude, radius != null ? radius : 5.0);
+        
+        // 카테고리 필터링 (categoryId가 제공된 경우)
+        if (categoryId != null) {
+            places = places.stream()
+                    .filter(place -> place.getCategory() != null && place.getCategory().getId().equals(categoryId))
+                    .collect(Collectors.toList());
+        }
+        
+        return places.stream()
                 .map(PlaceDto::new)
                 .collect(Collectors.toList());
     }
