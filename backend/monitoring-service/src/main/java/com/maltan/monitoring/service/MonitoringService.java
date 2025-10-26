@@ -115,7 +115,8 @@ public class MonitoringService {
                     // 메모리 및 CPU 통계 (간단한 버전)
                     Statistics stats = dockerClient.statsCmd(containerId)
                             .withNoStream(true)
-                            .exec();
+                            .exec(new com.github.dockerjava.core.InvocationBuilder.AsyncResultCallback<>())
+                            .awaitResult();
 
                     double memoryUsage = 0;
                     long memoryUsed = 0;
@@ -214,25 +215,23 @@ public class MonitoringService {
                     }
 
                     // 로그 가져오기 (마지막 50줄)
-                    String logOutput = dockerClient.logContainerCmd(container.getId())
+                    final StringBuilder logBuilder = new StringBuilder();
+                    com.github.dockerjava.api.async.ResultCallback.Adapter<com.github.dockerjava.api.model.Frame> callback = 
+                            new com.github.dockerjava.api.async.ResultCallback.Adapter<>() {
+                                @Override
+                                public void onNext(com.github.dockerjava.api.model.Frame frame) {
+                                    logBuilder.append(new String(frame.getPayload()));
+                                }
+                            };
+                    
+                    dockerClient.logContainerCmd(container.getId())
                             .withStdOut(true)
                             .withStdErr(true)
                             .withTail(50)
-                            .exec(new com.github.dockerjava.api.async.ResultCallback.Adapter<>() {
-                                final StringBuilder builder = new StringBuilder();
-
-                                @Override
-                                public void onNext(com.github.dockerjava.api.model.Frame frame) {
-                                    builder.append(new String(frame.getPayload()));
-                                }
-
-                                @Override
-                                public String toString() {
-                                    return builder.toString();
-                                }
-                            })
-                            .awaitCompletion(5, TimeUnit.SECONDS)
-                            .toString();
+                            .exec(callback)
+                            .awaitCompletion(5, TimeUnit.SECONDS);
+                    
+                    String logOutput = logBuilder.toString();
 
                     // 로그 파싱 (간단한 버전)
                     String[] logLines = logOutput.split("\n");

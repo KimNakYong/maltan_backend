@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MonitoringServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MonitoringServiceApplication.java, args);
+        SpringApplication.run(MonitoringServiceApplication.class, args);
     }
 }
 
