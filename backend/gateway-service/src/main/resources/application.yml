@@ -54,11 +54,17 @@ spring:
           predicates:
             - Path=/api/recommendation/**
         
-        # Place Service
-        - id: place-service
+        # Place Service - Places
+        - id: place-service-places
           uri: ${PLACE_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/places/**
+        
+        # Place Service - Categories
+        - id: place-service-categories
+          uri: ${PLACE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/categories/**
 
 # Actuator 설정
 management:
