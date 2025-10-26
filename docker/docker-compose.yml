@@ -19,7 +19,9 @@ services:
       - DB_PORT=3306
       - DB_NAME=user_service
       - DB_USERNAME=root
-      - DB_PASSWORD=password
+      - DB_PASSWORD=1234
+      - JWT_SECRET=your-secret-key-here-min-32-characters-long-for-security
+      - JWT_EXPIRATION=86400000
     networks:
       - maltan-network
     restart: unless-stopped
@@ -68,11 +70,11 @@ services:
       - DB_HOST=10.0.2.15
       - DB_PORT=5432
       - DB_NAME=community_db
-      - DB_USERNAME=community_user
-      - DB_PASSWORD=Community@2025!
+      - DB_USERNAME=maltan_user
+      - DB_PASSWORD=maltan_pass123
       - REDIS_HOST=10.0.2.15
       - REDIS_PORT=6379
-      - USER_SERVICE_URL=http://10.0.2.15:8081
+      - USER_SERVICE_URL=http://user-service:8081
     networks:
       - maltan-network
     restart: unless-stopped
@@ -94,9 +96,9 @@ services:
       - DB_HOST=10.0.2.15
       - DB_PORT=5432
       - DB_NAME=recommendation_db
-      - DB_USERNAME=recommendation_user
-      - DB_PASSWORD=Recommendation2025
-      - PLACE_SERVICE_URL=http://10.0.2.15:8082
+      - DB_USERNAME=maltan_user
+      - DB_PASSWORD=maltan_pass123
+      - PLACE_SERVICE_URL=http://place-service:8082
     networks:
       - maltan-network
     restart: unless-stopped
@@ -146,6 +148,7 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+      - loki
     networks:
       - maltan-network
     restart: unless-stopped
@@ -154,6 +157,36 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+    networks:
+      - maltan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - maltan-network
+    restart: unless-stopped
 
   gateway-service:
     build:
@@ -195,3 +228,4 @@ volumes:
   place_uploads:
   prometheus_data:
   grafana_data:
+  loki_data:
