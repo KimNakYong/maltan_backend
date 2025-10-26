@@ -36,13 +36,22 @@ jobs:
           echo "=== Current Running Services ==="
           docker-compose ps
           
+          # 기존 컨테이너 완전히 제거 (ContainerConfig 에러 방지)
+          echo "=== Stopping and Removing Old Container ==="
+          docker-compose stop monitoring-service || true
+          docker-compose rm -f monitoring-service || true
+          
+          # 기존 이미지 제거
+          echo "=== Removing Old Image ==="
+          docker rmi docker_monitoring-service || true
+          
           # monitoring-service 이미지 재빌드
           echo "=== Building Monitoring Service ==="
-          docker-compose build monitoring-service
+          docker-compose build --no-cache monitoring-service
           
           # monitoring-service 시작 (기존 서비스 영향 없음)
           echo "=== Starting Monitoring Service ==="
-          docker-compose up -d --no-deps monitoring-service
+          docker-compose up -d monitoring-service
           
           # gateway-service 재시작 (새 라우팅 적용) - 없으면 시작
           echo "=== Restarting Gateway Service ==="
