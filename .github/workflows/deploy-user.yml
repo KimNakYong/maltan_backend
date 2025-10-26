@@ -20,8 +20,8 @@ jobs:
       - name: Build User Service
         working-directory: backend/user-service
         run: |
-          chmod +x gradlew
-          ./gradlew clean build -x test
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
       
       - name: Build Docker Image
         working-directory: backend/user-service
@@ -37,10 +37,8 @@ jobs:
         run: |
           docker run -d \
             --name user-service \
-            --network docker_maltan-network \
+            --network host \
             --restart unless-stopped \
-            -p 8081:8081 \
-            -v /var/run/docker.sock:/var/run/docker.sock \
             -e DB_HOST=10.0.2.15 \
             -e DB_PORT=3306 \
             -e DB_NAME=user_service \
