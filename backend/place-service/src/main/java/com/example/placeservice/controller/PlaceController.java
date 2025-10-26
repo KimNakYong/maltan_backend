@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
@@ -180,8 +182,23 @@ public class PlaceController {
             placeDto.setDetailedAddress(detailedAddress);
             placeDto.setPhoneNumber(phoneNumber);
             placeDto.setWebsite(website);
-            placeDto.setOpeningTime(openingTime);
-            placeDto.setClosingTime(closingTime);
+            
+            // LocalTime 변환
+            if (openingTime != null && !openingTime.isEmpty()) {
+                try {
+                    placeDto.setOpeningTime(LocalTime.parse(openingTime));
+                } catch (DateTimeParseException e) {
+                    // 파싱 실패 시 무시
+                }
+            }
+            if (closingTime != null && !closingTime.isEmpty()) {
+                try {
+                    placeDto.setClosingTime(LocalTime.parse(closingTime));
+                } catch (DateTimeParseException e) {
+                    // 파싱 실패 시 무시
+                }
+            }
+            
             placeDto.setClosedDays(closedDays);
             placeDto.setIsOpen24h(isOpen24h);
             placeDto.setCreatedBy(1L); // 임시
