@@ -39,8 +39,6 @@ spring:
           uri: ${USER_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/user/**
-          filters:
-            - RewritePath=/api/user/(?<segment>.*), /api/$\{segment}
         
         # Community Service
         - id: community-service
