@@ -197,19 +197,29 @@ public class FileUploadService {
         // 기존 사진 모두 삭제
         List<Photo> existingPhotos = photoRepository.findByPlaceIdOrderBySortOrderAscCreatedAtDesc(placeId);
         for (Photo existingPhoto : existingPhotos) {
-            // 물리적 파일 삭제
-            try {
-                Path filePath = Paths.get(uploadDir, existingPhoto.getFilePath());
-                Files.deleteIfExists(filePath);
-                
-                // 썸네일도 삭제
-                String thumbPath = existingPhoto.getFilePath().replace(".jpg", "_thumb.jpg")
-                        .replace(".png", "_thumb.jpg")
-                        .replace(".jpeg", "_thumb.jpg");
-                Path thumbFilePath = Paths.get(uploadDir, thumbPath);
-                Files.deleteIfExists(thumbFilePath);
-            } catch (Exception e) {
-                System.err.println("기존 파일 삭제 실패: " + e.getMessage());
+            // Cloud Storage 사용 시 GCS에서 삭제
+            if (cloudStorageService.isEnabled() && existingPhoto.getFilePath() != null && 
+                existingPhoto.getFilePath().startsWith("https://storage.googleapis.com/")) {
+                try {
+                    cloudStorageService.deleteFile(existingPhoto.getFilePath());
+                } catch (Exception e) {
+                    System.err.println("GCS 파일 삭제 실패: " + e.getMessage());
+                }
+            } else {
+                // 로컬 파일 삭제
+                try {
+                    Path filePath = Paths.get(uploadDir, existingPhoto.getFilePath());
+                    Files.deleteIfExists(filePath);
+                    
+                    // 썸네일도 삭제
+                    String thumbPath = existingPhoto.getFilePath().replace(".jpg", "_thumb.jpg")
+                            .replace(".png", "_thumb.jpg")
+                            .replace(".jpeg", "_thumb.jpg");
+                    Path thumbFilePath = Paths.get(uploadDir, thumbPath);
+                    Files.deleteIfExists(thumbFilePath);
+                } catch (Exception e) {
+                    System.err.println("로컬 파일 삭제 실패: " + e.getMessage());
+                }
             }
         }
         // DB에서 삭제
@@ -223,6 +233,44 @@ public class FileUploadService {
             
             validateFile(file);
             
+            // Cloud Storage 사용 (활성화된 경우)
+            if (cloudStorageService.isEnabled()) {
+                try {
+                    String fileUrl = cloudStorageService.uploadFile(file, "places");
+                    
+                    // Photo 엔티티 생성
+                    Photo photo = new Photo(
+                        file.getOriginalFilename(),
+                        extractFileNameFromUrl(fileUrl),
+                        fileUrl, // GCS URL을 filePath에 저장
+                        file.getSize(),
+                        file.getContentType(),
+                        uploadedBy
+                    );
+                    
+                    // 장소 설정
+                    photo.setPlace(place);
+                    
+                    // 메인 사진으로 설정
+                    photo.setIsMain(true);
+                    
+                    // 정렬 순서 1로 설정
+                    photo.setSortOrder(1);
+                    
+                    // DB 저장
+                    Photo savedPhoto = photoRepository.save(photo);
+                    PhotoDto photoDto = new PhotoDto(savedPhoto);
+                    photoDto.setFileUrl(fileUrl); // DTO에 URL 추가
+                    uploadedPhotos.add(photoDto);
+                    
+                    return uploadedPhotos;
+                } catch (Exception e) {
+                    System.err.println("Cloud Storage 업로드 실패, 로컬 저장으로 fallback: " + e.getMessage());
+                    // Cloud Storage 실패 시 로컬 저장으로 계속
+                }
+            }
+            
+            // 로컬 저장 (기본 또는 Cloud Storage 실패 시)
             String storedName = generateStoredName(file.getOriginalFilename());
             String filePath = createFilePath(storedName);
             
