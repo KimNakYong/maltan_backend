@@ -22,8 +22,8 @@ jobs:
       - name: 🔐 Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          # SSH 키를 파일로 저장 (개행 문자 보존)
-          echo "${{ secrets.GCP_VM_SSH_KEY }}" > ~/.ssh/gcp_vm
+          # Base64로 인코딩된 SSH 키를 디코딩하여 저장
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" | base64 -d > ~/.ssh/gcp_vm
           chmod 600 ~/.ssh/gcp_vm
           chmod 700 ~/.ssh
           
@@ -33,12 +33,16 @@ jobs:
           # 디버깅: 키 파일 확인
           echo "=== SSH Key File Info ==="
           ls -la ~/.ssh/gcp_vm
-          echo "=== First 2 lines of key ==="
-          head -n 2 ~/.ssh/gcp_vm
-          echo "=== Last 2 lines of key ==="
-          tail -n 2 ~/.ssh/gcp_vm
+          echo "=== First line ==="
+          head -n 1 ~/.ssh/gcp_vm
+          echo "=== Last line ==="
+          tail -n 1 ~/.ssh/gcp_vm
           echo "=== Line count ==="
           wc -l ~/.ssh/gcp_vm
+          
+          # SSH 키 유효성 검사
+          echo "=== SSH Key Validation ==="
+          ssh-keygen -l -f ~/.ssh/gcp_vm || echo "Key validation failed"
 
       - name: 🚀 Deploy to GCP VM
         run: |
