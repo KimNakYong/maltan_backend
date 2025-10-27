@@ -1,0 +1,139 @@
+name: Deploy Backend Services to GCP VM
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docker/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to GCP VM
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" > ~/.ssh/gcp_vm
+          chmod 600 ~/.ssh/gcp_vm
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Deploy to GCP VM
+        run: |
+          ssh -i ~/.ssh/gcp_vm -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'ENDSSH'
+            set -e
+            
+            echo "================================"
+            echo "🔄 Step 1: Pull latest code"
+            echo "================================"
+            cd ~/maltan_backend
+            git pull origin main
+            
+            echo ""
+            echo "================================"
+            echo "🏗️  Step 2: Build all services"
+            echo "================================"
+            
+            # Gateway Service
+            echo "Building Gateway Service..."
+            cd ~/maltan_backend/backend/gateway-service
+            mvn clean package -DskipTests
+            
+            # User Service
+            echo "Building User Service..."
+            cd ~/maltan_backend/backend/user-service
+            mvn clean package -DskipTests
+            
+            # Place Service
+            echo "Building Place Service..."
+            cd ~/maltan_backend/backend/place-service
+            mvn clean package -DskipTests
+            
+            # Community Service
+            echo "Building Community Service..."
+            cd ~/maltan_backend/backend/community-service
+            mvn clean package -DskipTests
+            
+            # Recommendation Service
+            echo "Building Recommendation Service..."
+            cd ~/maltan_backend/backend/recommendation-service
+            mvn clean package -DskipTests
+            
+            echo ""
+            echo "================================"
+            echo "🐳 Step 3: Deploy with Docker Compose"
+            echo "================================"
+            cd ~/maltan_backend/docker
+            docker-compose up -d --build
+            
+            echo ""
+            echo "================================"
+            echo "⏳ Step 4: Wait for services to start"
+            echo "================================"
+            sleep 60
+            
+            echo ""
+            echo "================================"
+            echo "✅ Step 5: Check service status"
+            echo "================================"
+            docker ps
+            
+            echo ""
+            echo "================================"
+            echo "🏥 Step 6: Health checks"
+            echo "================================"
+            
+            echo "Gateway Service:"
+            curl -s http://localhost:8080/actuator/health | jq . || echo "Gateway not ready yet"
+            
+            echo ""
+            echo "User Service:"
+            curl -s http://localhost:8081/api/actuator/health | jq . || echo "User Service not ready yet"
+            
+            echo ""
+            echo "Place Service:"
+            curl -s http://localhost:8082/actuator/health | jq . || echo "Place Service not ready yet"
+            
+            echo ""
+            echo "Community Service:"
+            curl -s http://localhost:8083/actuator/health | jq . || echo "Community Service not ready yet"
+            
+            echo ""
+            echo "Recommendation Service:"
+            curl -s http://localhost:8084/actuator/health | jq . || echo "Recommendation Service not ready yet"
+            
+            echo ""
+            echo "================================"
+            echo "🎉 Deployment completed!"
+            echo "================================"
+          ENDSSH
+
+      - name: 📊 Deployment Summary
+        if: success()
+        run: |
+          echo "### ✅ Deployment Successful! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed Services:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Gateway Service (8080)" >> $GITHUB_STEP_SUMMARY
+          echo "- User Service (8081)" >> $GITHUB_STEP_SUMMARY
+          echo "- Place Service (8082)" >> $GITHUB_STEP_SUMMARY
+          echo "- Community Service (8083)" >> $GITHUB_STEP_SUMMARY
+          echo "- Recommendation Service (8084)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Server:** ${{ secrets.GCP_VM_IP }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+
+      - name: ❌ Deployment Failed
+        if: failure()
+        run: |
+          echo "### ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+

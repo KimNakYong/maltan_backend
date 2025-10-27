@@ -1,0 +1,53 @@
+name: Deploy Gateway Service Only
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/gateway-service/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Gateway Service
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" > ~/.ssh/gcp_vm
+          chmod 600 ~/.ssh/gcp_vm
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Deploy Gateway Service
+        run: |
+          ssh -i ~/.ssh/gcp_vm -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'ENDSSH'
+            set -e
+            
+            echo "🔄 Updating code..."
+            cd ~/maltan_backend
+            git pull origin main
+            
+            echo "🏗️  Building Gateway Service..."
+            cd ~/maltan_backend/backend/gateway-service
+            mvn clean package -DskipTests
+            
+            echo "🐳 Deploying with Docker Compose..."
+            cd ~/maltan_backend/docker
+            docker-compose up -d --build gateway-service
+            
+            echo "⏳ Waiting for service to start..."
+            sleep 30
+            
+            echo "✅ Checking status..."
+            docker ps | grep gateway-service
+            curl -s http://localhost:8080/actuator/health | jq .
+            
+            echo "🎉 Gateway Service deployed successfully!"
+          ENDSSH
+
