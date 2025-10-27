@@ -7,12 +7,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-
+/**
+ * Spring Security 설정
+ * CORS는 Gateway에서 처리
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -25,7 +24,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // Gateway에서 CORS 처리하므로 개별 서비스에서는 비활성화
+            .cors(cors -> cors.disable())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("OPTIONS", "/**").permitAll() // OPTIONS 요청 허용
@@ -42,27 +42,5 @@ public class SecurityConfig {
             .httpBasic(httpBasic -> httpBasic.disable());
         
         return http.build();
-    }
-    
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "https://reserved-jolie-untastily.ngrok-free.app",
-            "https://reserved-jolie-untastily.ngrok-free.dev",
-            "https://*.ngrok-free.app",
-            "https://*.ngrok-free.dev",
-            "http://localhost:3000",
-            "http://localhost:8080",
-            "http://127.0.0.1:3000"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }

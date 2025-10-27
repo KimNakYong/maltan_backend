@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user/admin")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class AdminUserController {
     

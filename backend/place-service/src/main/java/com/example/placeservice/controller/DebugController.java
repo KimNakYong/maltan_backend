@@ -21,7 +21,6 @@ import java.util.stream.Stream;
  */
 @RestController
 @RequestMapping("/api/debug")
-@CrossOrigin(origins = "*")
 public class DebugController {
 
     @Value("${app.upload.dir:/app/uploads}")

@@ -22,7 +22,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/user/auth")
-@CrossOrigin(origins = "*")
 public class UserController {
     
     @Autowired
