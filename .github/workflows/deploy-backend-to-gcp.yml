@@ -53,6 +53,11 @@ jobs:
             echo "🔄 Step 1: Pull latest code"
             echo "================================"
             cd /root/maltan_backend
+            
+            # Git 참조 정리
+            git remote prune origin
+            git gc --prune=now
+            
             git reset --hard origin/main
             git pull origin main
             
