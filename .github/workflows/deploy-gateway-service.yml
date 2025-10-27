@@ -1,0 +1,79 @@
+name: Deploy Gateway Service to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/gateway-service/**'
+      - '.github/workflows/deploy-gateway-service.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Gateway Service
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" | base64 -d > ~/.ssh/gcp_vm
+          chmod 600 ~/.ssh/gcp_vm
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: 🚀 Deploy Gateway Service Only
+        run: |
+          ssh -i ~/.ssh/gcp_vm -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'ENDSSH'
+            set -e
+            
+            echo "================================"
+            echo "🔄 Pull latest code"
+            echo "================================"
+            cd /root/maltan_backend
+            git reset --hard origin/main
+            git pull origin main
+            
+            echo ""
+            echo "================================"
+            echo "🏗️  Build Gateway Service"
+            echo "================================"
+            cd backend/gateway-service
+            mvn clean package -DskipTests
+            
+            echo ""
+            echo "================================"
+            echo "🐳 Restart Gateway Service"
+            echo "================================"
+            cd ../../docker
+            docker-compose up -d --build gateway-service
+            
+            echo ""
+            echo "================================"
+            echo "⏳ Wait for service to start"
+            echo "================================"
+            sleep 30
+            
+            echo ""
+            echo "================================"
+            echo "✅ Health Check"
+            echo "================================"
+            curl -s http://localhost:8080/actuator/health | jq . || echo "Gateway not ready yet"
+            
+            echo ""
+            echo "🎉 Gateway Service deployed!"
+          ENDSSH
+
+      - name: 📊 Deployment Summary
+        if: success()
+        run: |
+          echo "### ✅ Gateway Service Deployed! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Server:** ${{ secrets.GCP_VM_IP }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Port:** 8080" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+

@@ -1,0 +1,80 @@
+name: Deploy Recommendation Service to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/recommendation-service/**'
+      - '.github/workflows/deploy-recommendation-service.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Recommendation Service
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" | base64 -d > ~/.ssh/gcp_vm
+          chmod 600 ~/.ssh/gcp_vm
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: 🚀 Deploy Recommendation Service Only
+        run: |
+          ssh -i ~/.ssh/gcp_vm -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'ENDSSH'
+            set -e
+            
+            echo "================================"
+            echo "🔄 Pull latest code"
+            echo "================================"
+            cd /root/maltan_backend
+            git reset --hard origin/main
+            git pull origin main
+            
+            echo ""
+            echo "================================"
+            echo "🏗️  Build Recommendation Service"
+            echo "================================"
+            cd backend/recommendation-service
+            mvn clean package -DskipTests
+            
+            echo ""
+            echo "================================"
+            echo "🐳 Restart Recommendation Service"
+            echo "================================"
+            cd ../../docker
+            docker-compose up -d --build recommendation-service
+            
+            echo ""
+            echo "================================"
+            echo "⏳ Wait for service to start"
+            echo "================================"
+            sleep 30
+            
+            echo ""
+            echo "================================"
+            echo "✅ Health Check"
+            echo "================================"
+            docker logs recommendation-service --tail 20
+            
+            echo ""
+            echo "🎉 Recommendation Service deployed!"
+          ENDSSH
+
+      - name: 📊 Deployment Summary
+        if: success()
+        run: |
+          echo "### ✅ Recommendation Service Deployed! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Server:** ${{ secrets.GCP_VM_IP }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Port:** 8084" >> $GITHUB_STEP_SUMMARY
+          echo "**Features:** AI Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+

@@ -1,14 +1,14 @@
-name: Deploy Backend Services to GCP VM
+name: Deploy ALL Backend Services to GCP VM (Manual Only)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - 'docker/**'
-      - '.github/workflows/deploy-backend-to-gcp.yml'
-  workflow_dispatch:
+  # 자동 배포 비활성화 - 수동 트리거만 허용
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'backend/**'
+  #     - 'docker/**'
+  workflow_dispatch:  # 수동 실행만 가능
 
 jobs:
   deploy:

@@ -1,0 +1,80 @@
+name: Deploy Place Service to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/place-service/**'
+      - '.github/workflows/deploy-place-service.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Place Service
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" | base64 -d > ~/.ssh/gcp_vm
+          chmod 600 ~/.ssh/gcp_vm
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: 🚀 Deploy Place Service Only
+        run: |
+          ssh -i ~/.ssh/gcp_vm -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'ENDSSH'
+            set -e
+            
+            echo "================================"
+            echo "🔄 Pull latest code"
+            echo "================================"
+            cd /root/maltan_backend
+            git reset --hard origin/main
+            git pull origin main
+            
+            echo ""
+            echo "================================"
+            echo "🏗️  Build Place Service"
+            echo "================================"
+            cd backend/place-service
+            mvn clean package -DskipTests
+            
+            echo ""
+            echo "================================"
+            echo "🐳 Restart Place Service"
+            echo "================================"
+            cd ../../docker
+            docker-compose up -d --build place-service
+            
+            echo ""
+            echo "================================"
+            echo "⏳ Wait for service to start"
+            echo "================================"
+            sleep 30
+            
+            echo ""
+            echo "================================"
+            echo "✅ Health Check"
+            echo "================================"
+            docker logs place-service --tail 20
+            
+            echo ""
+            echo "🎉 Place Service deployed!"
+          ENDSSH
+
+      - name: 📊 Deployment Summary
+        if: success()
+        run: |
+          echo "### ✅ Place Service Deployed! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Server:** ${{ secrets.GCP_VM_IP }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Port:** 8082" >> $GITHUB_STEP_SUMMARY
+          echo "**Features:** Places, Reviews, Photos, GCP Storage" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+
