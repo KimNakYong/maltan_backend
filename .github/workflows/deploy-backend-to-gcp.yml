@@ -49,11 +49,12 @@ jobs:
           ssh -i ~/.ssh/gcp_vm -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'ENDSSH'
             set -e
             
-            echo "================================"
-            echo "🔄 Step 1: Pull latest code"
-            echo "================================"
-            cd ~/maltan_backend
-            git pull origin main
+    echo "================================"
+    echo "🔄 Step 1: Pull latest code"
+    echo "================================"
+    cd ~/maltan_backend
+    git reset --hard origin/main
+    git pull origin main
             
             echo ""
             echo "================================"
