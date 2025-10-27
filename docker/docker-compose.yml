@@ -18,8 +18,8 @@ services:
       - DB_HOST=10.0.2.15
       - DB_PORT=3306
       - DB_NAME=user_service
-      - DB_USERNAME=root
-      - DB_PASSWORD=1234
+      - DB_USERNAME=maltan_user
+      - DB_PASSWORD=maltan1234
       - JWT_SECRET=your-secret-key-here-min-32-characters-long-for-security
       - JWT_EXPIRATION=86400000
     networks:
@@ -44,8 +44,8 @@ services:
       - DB_HOST=10.0.2.15
       - DB_PORT=3306
       - DB_NAME=placedb
-      - DB_USERNAME=root
-      - DB_PASSWORD=1234
+      - DB_USERNAME=maltan_user
+      - DB_PASSWORD=maltan1234
       - UPLOAD_DIR=/app/uploads
     networks:
       - maltan-network
@@ -71,7 +71,7 @@ services:
       - DB_PORT=5432
       - DB_NAME=community_db
       - DB_USERNAME=maltan_user
-      - DB_PASSWORD=maltan_pass123
+      - DB_PASSWORD=maltan1234
       - REDIS_HOST=10.0.2.15
       - REDIS_PORT=6379
       - USER_SERVICE_URL=http://user-service:8081
@@ -97,7 +97,7 @@ services:
       - DB_PORT=5432
       - DB_NAME=recommendation_db
       - DB_USERNAME=maltan_user
-      - DB_PASSWORD=maltan_pass123
+      - DB_PASSWORD=maltan1234
       - PLACE_SERVICE_URL=http://place-service:8082
     networks:
       - maltan-network
@@ -201,8 +201,8 @@ services:
       - REDIS_PORT=6379
       - USER_SERVICE_URL=http://user-service:8081
       - PLACE_SERVICE_URL=http://place-service:8082
-      - RECOMMENDATION_SERVICE_URL=http://recommendation-service:8083
-      - COMMUNITY_SERVICE_URL=http://community-service:8084
+      - COMMUNITY_SERVICE_URL=http://community-service:8083
+      - RECOMMENDATION_SERVICE_URL=http://recommendation-service:8084
     depends_on:
       - user-service
       - place-service
