@@ -43,6 +43,9 @@ public class FileUploadService {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private CloudStorageService cloudStorageService;
+
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
@@ -78,6 +81,26 @@ public class FileUploadService {
     public PhotoDto uploadFile(MultipartFile file, Long uploadedBy) throws IOException {
         validateFile(file);
         
+        // Cloud Storage 사용 (활성화된 경우)
+        if (cloudStorageService.isEnabled()) {
+            try {
+                String fileUrl = cloudStorageService.uploadFile(file, "places");
+                PhotoDto photoDto = new PhotoDto();
+                photoDto.setOriginalName(file.getOriginalFilename());
+                photoDto.setStoredName(extractFileNameFromUrl(fileUrl));
+                photoDto.setFilePath(fileUrl); // GCS URL을 filePath에 저장
+                photoDto.setFileUrl(fileUrl);
+                photoDto.setFileSize(file.getSize());
+                photoDto.setContentType(file.getContentType());
+                photoDto.setUploadedBy(uploadedBy);
+                return photoDto;
+            } catch (Exception e) {
+                System.err.println("Cloud Storage 업로드 실패, 로컬 저장으로 fallback: " + e.getMessage());
+                // Cloud Storage 실패 시 로컬 저장으로 계속
+            }
+        }
+        
+        // 로컬 저장 (기본 또는 Cloud Storage 실패 시)
         String storedName = generateStoredName(file.getOriginalFilename());
         String filePath = createFilePath(storedName);
         
@@ -316,9 +339,15 @@ public class FileUploadService {
                 return false;
             }
             
-            // 물리적 파일 삭제
-            Path filePath = Paths.get(uploadDir, photo.getFilePath());
-            Files.deleteIfExists(filePath);
+            // Cloud Storage 사용 시 GCS에서 삭제
+            if (cloudStorageService.isEnabled() && photo.getFilePath() != null && 
+                photo.getFilePath().startsWith("https://storage.googleapis.com/")) {
+                cloudStorageService.deleteFile(photo.getFilePath());
+            } else {
+                // 로컬 저장소에서 삭제
+                Path filePath = Paths.get(uploadDir, photo.getFilePath());
+                Files.deleteIfExists(filePath);
+            }
             
             // 데이터베이스에서 삭제
             photoRepository.delete(photo);
@@ -492,5 +521,20 @@ public class FileUploadService {
             // 썸네일 생성 실패 시 로그만 남기고 계속 진행
             System.err.println("썸네일 생성 실패: " + e.getMessage());
         }
+    }
+
+    /**
+     * URL에서 파일명 추출 (GCS URL용)
+     */
+    private String extractFileNameFromUrl(String fileUrl) {
+        if (fileUrl == null) {
+            return null;
+        }
+        // GCS URL 형식: https://storage.googleapis.com/bucket-name/folder/filename
+        int lastSlashIndex = fileUrl.lastIndexOf('/');
+        if (lastSlashIndex >= 0 && lastSlashIndex < fileUrl.length() - 1) {
+            return fileUrl.substring(lastSlashIndex + 1);
+        }
+        return fileUrl;
     }
 }

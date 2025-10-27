@@ -79,6 +79,14 @@ app:
       quality: 0.8 # 이미지 품질 (0.0 ~ 1.0)
     thumbnail:
       size: 300 # 썸네일 크기 (정사각형)
+
+# GCP Cloud Storage 설정
+gcp:
+  storage:
+    enabled: ${GCP_STORAGE_ENABLED:false} # Cloud Storage 활성화 여부
+    project-id: ${GCP_PROJECT_ID:} # GCP 프로젝트 ID
+    bucket-name: ${GCP_STORAGE_BUCKET:} # GCS 버킷 이름
+    credentials-path: ${GCP_CREDENTIALS_PATH:} # Service Account Key JSON 파일 경로
   
   cors:
     allowed-origins: 
@@ -151,6 +159,13 @@ app:
       quality: 0.8
     thumbnail:
       size: 300
+
+gcp:
+  storage:
+    enabled: ${GCP_STORAGE_ENABLED:false}
+    project-id: ${GCP_PROJECT_ID:}
+    bucket-name: ${GCP_STORAGE_BUCKET:}
+    credentials-path: ${GCP_CREDENTIALS_PATH:}
   
   cors:
     allowed-origins: 
