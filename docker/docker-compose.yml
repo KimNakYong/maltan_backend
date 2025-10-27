@@ -53,10 +53,11 @@ services:
     volumes:
       - place_uploads:/app/uploads
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8082/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   community-service:
     build:
@@ -83,6 +84,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 120s
 
   recommendation-service:
     build:
@@ -107,6 +109,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
   # ===========================================
   # 모니터링 스택 (Prometheus + Grafana)
@@ -216,6 +219,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 120s
 
 # ===========================================
 # 네트워크 및 볼륨
