@@ -21,9 +21,12 @@ jobs:
       - name: 🔐 Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.GCP_VM_SSH_KEY }}" > ~/.ssh/gcp_vm
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" | tr -d '\r' > ~/.ssh/gcp_vm
           chmod 600 ~/.ssh/gcp_vm
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+          
+          # SSH 키 유효성 검사
+          ssh-keygen -l -f ~/.ssh/gcp_vm || (echo "Invalid SSH key format!" && exit 1)
 
       - name: 🚀 Deploy to GCP VM
         run: |
