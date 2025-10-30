@@ -24,6 +24,8 @@ spring:
               - "https://*.ngrok-free.app"
               - "https://*.ngrok.io"
               - "https://storage.googleapis.com"
+              - "https://gkst.shop"
+              - "https://*.gkst.shop"
             allowedMethods:
               - GET
               - POST
